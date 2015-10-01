@@ -1,0 +1,8 @@
+bottle==0.12.8
+Cython==0.23.2
+elasticsearch==1.6.0
+gensim==0.12.1
+nltk==3.0.5
+scikit-learn==0.16.1
+six==1.9.0
+uwsgi
