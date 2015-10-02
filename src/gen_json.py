@@ -6,29 +6,31 @@
 from how_many import Counter
 from pairwise_distance import *
 from integration import Integration
-from loading import loading
 
 
 class CreateJson(object):
-    def __init__(self, corpus, tfidf, index, tfidf_dict, tfidf_web, mean_dict, ball_tree, w2v_model, d2v_model):
+    def __init__(self, corpus, tfidf, index, tfidf_dict, tfidf_web,
+                 mean_dict, ball_tree, d2v_model, des_dict, w2v_model, key_dict):
         self.corpus = corpus                    # bow corpus
         self.tfidf = tfidf                      # tfidf model
         self.index = index                      # tfidf similarity matrix
         self.tfidf_dict = tfidf_dict            # dictionary for word <-> id
         self.tfidf_web = tfidf_web              # dictionary for doc n <-> website
-        self.ball_tree = ball_tree              # nearest neighbors ball tree structure
         self.mean_dict = mean_dict              # mean vector <-> website
+        self.ball_tree = ball_tree              # nearest neighbors ball tree structure
         self.d2v_model = d2v_model              # description doc2vec model
+        self.des_dict = des_dict
         self.w2v_model = w2v_model              # keywords word2vec model
+        self.key_dict = key_dict
         self.loss = 1.0
         self.key_len_in = 0.0                           # metadata about input website
         self.des_len_in = 0.0                           # they are changed when asking for input web metadata
         self.txt_len_in = 0.0                           # in self.inp_web_info with explicit = True
-        self.counter = Counter(self.corpus, self.w2v_model, self.d2v_model,
+        self.counter = Counter(self.corpus, self.des_dict, self.key_dict,
                                self.tfidf_dict, self.tfidf, self.tfidf_web)   # counter for keywords/token
         # to have the integration functions
-        self.integrate = Integration(self.corpus, self.tfidf, self.index, self.tfidf_dict, self.tfidf_web,
-                                     self.mean_dict, self.ball_tree, self.w2v_model, self.d2v_model)
+        self.integrate = Integration(self.corpus, self.tfidf, self.index, self.tfidf_web,
+                                     self.mean_dict, self.ball_tree, self.d2v_model)
 
     def inp_web_info(self, url, dictionary=True, explicit=False):
         """information on the input website"""
@@ -62,7 +64,7 @@ class CreateJson(object):
         """compute the 20 websites most similar according to tfidf, and compute their value also in the other models"""
 
         # get 20 most similar web according to tfidf
-        tfidf_score, tfidf_rank = self.integrate.ms_tfidf(url, n=20, metadata=False)
+        tfidf_score, tfidf_rank = self.integrate.ms_tfidf(url, n=20)
 
         text_dict = dict()              # empty dict for json obj creation
 
@@ -119,7 +121,7 @@ class CreateJson(object):
     def d2v_websites(self, url, sf, only_web=False):
         """compute the 20 websites most similar according to tfidf, and compute their value also in the other models"""
         # get 20 most similar websites according to d2v
-        d2v_score, d2v_rank = self.integrate.ms_d2v(url, n=20, metadata=False)
+        d2v_score, d2v_rank = self.integrate.ms_d2v(url, n=20)
         d2v_dict = dict()           # empty dict for json obj creation
 
         if not only_web:
@@ -179,7 +181,7 @@ class CreateJson(object):
     def w2v_websites(self, url, sf, only_web=False):
         """compute the 20 websites most similar according to tfidf, and compute their value also in the other models"""
         # 20 most similar according to w2v
-        w2v_score, w2v_rank = self.integrate.ms_w2v_key(url, n=20, metadata=False)
+        w2v_score, w2v_rank = self.integrate.ms_w2v_key(url, n=20)
         w2v_dict = dict()             # empty dict for json obj creation
 
         if not only_web:
@@ -256,26 +258,3 @@ class CreateJson(object):
             json_obj = {url: 'website not present in the models'}
 
         return json_obj
-
-
-def main():
-    """run the main for a not ordered example :)"""
-    from ScoreFunc import ScoreFunc
-    from datetime import datetime
-    # load the models
-    corpora, tfidf, index, tfidf_dict, tfidf_web, mean_dict, ball_tree, w2v_model, d2v_model = loading()
-
-    # class for rank, len, score computation
-    cs = CreateJson(corpora, tfidf, index, tfidf_dict, tfidf_web, mean_dict, ball_tree, w2v_model, d2v_model)
-
-    while True:
-        print "insert website or 'stop' to exit"
-        website = raw_input("--> ")
-        if website == "stop":
-            break
-        a = datetime.now()
-        print cs.get_json(website, ScoreFunc())
-        print "time taken", datetime.now() - a
-
-if __name__ == '__main__':
-    main()
