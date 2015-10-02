@@ -6,10 +6,12 @@ from collections import OrderedDict
 import json
 
 # load the models needed
-corpus, tfidf, index, tfidf_dict, tfidf_web, mean_dict, ball_tree, w2v_model, d2v_model = loading()
+corpus, tfidf, index, tfidf_dict, tfidf_web, \
+    mean_dict, ball_tree, d2v_model, des_dict, w2v_model, key_dict = loading()
 
 # class for rank, len, score computation
-c_json = CreateJson(corpus, tfidf, index, tfidf_dict, tfidf_web, mean_dict, ball_tree, w2v_model, d2v_model)
+c_json = CreateJson(corpus, tfidf, index, tfidf_dict, tfidf_web,
+                    mean_dict, ball_tree, d2v_model, des_dict, w2v_model, key_dict)
 
 sf = ScoreFunc()  # class for total_score computation
 app = Bottle()  # bottle application
@@ -19,6 +21,7 @@ app = Bottle()  # bottle application
 def suggestions():
     response.content_type = 'application/json'
     parameters = request.query.decode()     # retrieve query parameters
+
     website = parameters['website']         # which website?
     model = parameters['model']             # which model?
 
@@ -44,15 +47,18 @@ def suggestions():
         only_website = False                    # if nothing is provided, we want metadata!!!
 
     dictionary = c_json.get_json(website, sf, only_website)         # get dictionary from c_json
+
     # order everything by the total score
     try:
         dictionary_sort = OrderedDict(sorted(dictionary[u'output'].items(), key=lambda x: x[1][u'total_score']))
         # read it as a json object
-        json_obj = {website: dictionary[website], 'output': [{'website': website, 'data': data} for website, data in dictionary_sort.iteritems()]}
+        json_obj = {website: dictionary[website],
+                    'output': [{'website': website, 'data': data} for website, data in dictionary_sort.iteritems()]}
     except KeyError:
         json_obj = dictionary
 
     response.body = json.dumps(json_obj)
+
     return response
 
 
@@ -69,13 +75,9 @@ def boolean(string):
 def index():
     return static_file('index.html', root='/home/user/code/static')
 
-@app.route('/<filename:path>')
-def server_static(filename):
-    return static_file(filename, root='/home/user/code/static')
-
 
 @error(500)
-def error404(error):            # try to explain how to make it works
+def error500(error):            # try to explain how to make it works
     string = "Wrong inputs. Provide something of the kind " \
              ".../suggest?website=your_url&model=your_model(&only_website=boolean) \n" \
              "where url may be any idg-20150723 website \n \n" \
