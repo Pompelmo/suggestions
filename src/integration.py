@@ -29,7 +29,7 @@ class Integration(object):
         bow = self.corpus[doc_num]                                      # transform it in bow
         tf_rep = self.tfidf[bow]                                        # get its tfidf representation
 
-        sims = self.index[tf_rep][n+1]                                        # query for similarity
+        sims = self.index[tf_rep][:n+1]                                        # query for similarity
 
         rank = []
         scores = []
