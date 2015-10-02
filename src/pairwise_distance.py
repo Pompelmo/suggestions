@@ -43,12 +43,18 @@ def w2v_distance(mean_dict, web_1, web_2, loss_weight):
 
 def d2v_distance(d2v_model, web_1, web_2, loss_weight):
     """compute the distance(as a function of cosine similarity) between two websites using d2v model"""
-    try:
-        cosine_sim = d2v_model.docvecs.similarity(web_1, web_2)
-    except ValueError:
-        return loss_weight                                  # if not present, return max distance
 
-    if not isinstance(cosine_sim, float):
+    vector_1 = numpy.array(d2v_model.docvecs[web_1])
+    vector_2 = numpy.array(d2v_model.docvecs[web_2])
+
+    if len(vector_1) == 100 and len(vector_2) == 100:
+
+        vec_unit_1 = vector_1 / numpy.linalg.norm(vector_1)
+        vec_unit_2 = vector_2 / numpy.linalg.norm(vector_2)
+
+        dist = numpy.linalg.norm(vec_unit_1 - vec_unit_2)
+
+        return dist / 2.0
+
+    else:
         return loss_weight
-
-    return sqrt(2.0 * (1.0 - cosine_sim)) / 2.0     # return distance of unit vectors
