@@ -70,11 +70,13 @@ def boolean(string):
     else:
         raise KeyError
 
-
 @app.route('/')
 def index():
     return static_file('index.html', root='/home/user/code/static')
 
+@app.route('/<filename:path>')
+def server_static(filename):
+  return static_file(filename, root='/home/user/code/static')
 
 @error(500)
 def error500(error):            # try to explain how to make it works
