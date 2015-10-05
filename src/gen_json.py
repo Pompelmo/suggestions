@@ -32,7 +32,7 @@ class CreateJson(object):
         self.integrate = Integration(self.corpus, self.tfidf, self.index, self.tfidf_web,
                                      self.mean_dict, self.ball_tree, self.d2v_model)
 
-    def inp_web_info(self, url, dictionary=True, explicit=False):
+    def inp_web_info(self, url, explicit=False):
         """information on the input website"""
 
         keywords = self.counter.count_keywords(url)             # get keywords
@@ -40,31 +40,35 @@ class CreateJson(object):
         text_tokens = self.counter.count_text(url)              # get count of text tokens
 
         # if explicit = True, keywords and description tokens are explicitly written. Use it just for input data!
-        if dictionary:
-            if explicit:                        # enriched metadata, used only for input website
 
-                self.key_len_in = len(keywords)
-                self.des_len_in = len(description)
-                self.txt_len_in = text_tokens
+        if explicit:                        # enriched metadata, used only for input website
 
-                input_dict = {'metadata': {'keywords': keywords, 'description': description,
-                                           'keywords_number': self.key_len_in, 'desc_tokens': self.des_len_in,
-                                           'text_tokens': self.txt_len_in}}
+            self.key_len_in = len(keywords)
+            self.des_len_in = len(description)
+            self.txt_len_in = text_tokens
 
-            else:
-                input_dict = {'metadata': {'keywords_number': len(keywords), 'desc_tokens': len(description),
-                                           'text_tokens': text_tokens}}
+            input_dict = {'metadata': {'keywords': keywords, 'description': description,
+                                       'keywords_number': self.key_len_in, 'desc_tokens': self.des_len_in,
+                                       'text_tokens': self.txt_len_in}}
 
-            return input_dict
+        else:
+            input_dict = {'metadata': {'keywords_number': len(keywords), 'desc_tokens': len(description),
+                                       'text_tokens': text_tokens}}
 
-        else:                           # if I need just the weight for computing the total score
-            return len(keywords), len(description), text_tokens
+        return input_dict
 
-    def text_websites(self, url, sf, only_web=False):
+    def get_weight(self, url):
+        keywords = self.counter.count_keywords(url)            # get keywords
+        description = self.counter.count_description(url)       # get description tokens
+        text_tokens = self.counter.count_text(url)              # get count of text tokens
+
+        return len(keywords), len(description), text_tokens
+
+    def text_websites(self, url, sf, n, only_web=False):
         """compute the 20 websites most similar according to tfidf, and compute their value also in the other models"""
 
         # get 20 most similar web according to tfidf
-        tfidf_score, tfidf_rank = self.integrate.ms_tfidf(url, n=20)
+        tfidf_score, tfidf_rank = self.integrate.ms_tfidf(url, n)
 
         text_dict = dict()              # empty dict for json obj creation
 
@@ -108,7 +112,7 @@ class CreateJson(object):
                 text_dict[item] = {}
 
                 if sf.meta_len:
-                    w2v_d, d2v_d, tfidf_d = self.inp_web_info(item, dictionary=False)
+                    w2v_d, d2v_d, tfidf_d = self.get_weight(item)
                     total_score = sf.score_func(w2v_score=w2v_s, d2v_score=d2v_s, tfidf_score=tfidf_score[i],
                                                 key_len_out=w2v_d, des_len_out=d2v_d, txt_len_out=tfidf_d)
                 else:
@@ -118,10 +122,10 @@ class CreateJson(object):
 
         return text_dict
 
-    def d2v_websites(self, url, sf, only_web=False):
+    def d2v_websites(self, url, sf, n, only_web=False):
         """compute the 20 websites most similar according to tfidf, and compute their value also in the other models"""
         # get 20 most similar websites according to d2v
-        d2v_score, d2v_rank = self.integrate.ms_d2v(url, n=20)
+        d2v_score, d2v_rank = self.integrate.ms_d2v(url, n)
         d2v_dict = dict()           # empty dict for json obj creation
 
         if not only_web:
@@ -168,7 +172,7 @@ class CreateJson(object):
 
                 # compute the total score
                 if sf.meta_len:
-                    w2v_d, d2v_d, tfidf_d = self.inp_web_info(item, dictionary=False)
+                    w2v_d, d2v_d, tfidf_d = self.get_weight(item)
                     total_score = sf.score_func(w2v_score=w2v_s, d2v_score=d2v_score[i], tfidf_score=tfidf_s,
                                                 key_len_out=w2v_d, des_len_out=d2v_d, txt_len_out=tfidf_d)
                 else:
@@ -178,10 +182,10 @@ class CreateJson(object):
 
         return d2v_dict
 
-    def w2v_websites(self, url, sf, only_web=False):
+    def w2v_websites(self, url, sf, n, only_web=False):
         """compute the 20 websites most similar according to tfidf, and compute their value also in the other models"""
         # 20 most similar according to w2v
-        w2v_score, w2v_rank = self.integrate.ms_w2v_key(url, n=20)
+        w2v_score, w2v_rank = self.integrate.ms_w2v_key(url, n)
         w2v_dict = dict()             # empty dict for json obj creation
 
         if not only_web:
@@ -225,7 +229,7 @@ class CreateJson(object):
                 tfidf_s = tfidf_distance(self.corpus, self.tfidf, self.tfidf_web, url, item, self.loss)
 
                 if sf.meta_len:
-                    w2v_d, d2v_d, tfidf_d = self.inp_web_info(item, dictionary=False)
+                    w2v_d, d2v_d, tfidf_d = self.get_weight(item)
 
                     # compute the total score
                     total_score = sf.score_func(w2v_score=w2v_score[i], d2v_score=d2v_s, tfidf_score=tfidf_s,
@@ -237,23 +241,23 @@ class CreateJson(object):
 
         return w2v_dict
 
-    def get_json(self, url, sf, only_web=False):
+    def get_json(self, url, sf, n, only_web=False):
         """generate the json object with the wanted information"""
 
         inp_data = self.inp_web_info(url, explicit=True)  # construct dict with input metadata
 
         # putting inp_data as first operation because it changes some class parameters then used in others
 
-        txt_web = self.text_websites(url, sf, only_web)              # construct dictionary with tfidf similar websites
-        w2v_web = self.w2v_websites(url, sf, only_web)               # construct dictionary with word2v similar websites
-        d2v_web = self.d2v_websites(url, sf, only_web)               # construct dictionary doc2vec similar websites
+        d2v_web = self.d2v_websites(url, sf, n, only_web)            # construct dictionary doc2vec similar websites
+        txt_web = self.text_websites(url, sf, n, only_web)           # construct dictionary with tfidf similar websites
+        w2v_web = self.w2v_websites(url, sf, n, only_web)            # construct dictionary with word2v similar websites
 
-        txt_web.update(w2v_web)                     # update first dictionary with the second, to avoid repetitions
-        txt_web.update(d2v_web)                     # and update also with the third one.
+        d2v_web.update(w2v_web)                     # update first dictionary with the second, to avoid repetitions
+        d2v_web.update(txt_web)                     # and update also with the third one.
 
         # now a json obj is created: metadata of the input website, with the output given by the three models
-        if txt_web:
-            json_obj = {url: inp_data, 'output': txt_web}  # it has be ordered according to the total score
+        if d2v_web:
+            json_obj = {url: inp_data, 'output': d2v_web}  # it has be ordered according to the total score
         else:
             json_obj = {url: 'website not present in the models'}
 

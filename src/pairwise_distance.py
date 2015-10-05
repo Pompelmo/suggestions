@@ -25,7 +25,7 @@ def tfidf_distance(corpora, tfidf, tfidf_web, web_1, web_2, loss_weight):
     tf_rap_1 = matutils.unitvec(tfidf[bow_1])                                 # get its tfidf representation
     tf_rap_2 = matutils.unitvec(tfidf[bow_2])
 
-    cosine_sim = matutils.cossim(tf_rap_1, tf_rap_2)
+    cosine_sim = min(matutils.cossim(tf_rap_1, tf_rap_2), 1.0)
 
     return sqrt(2.0 * (1.0 - cosine_sim)) / 2.0               # return the distance of the two vectors
 

@@ -37,7 +37,7 @@ class Counter(object):                                           # class with al
         try:
             indx = self.tfidf_web.values().index(url)       # try to get the index of the website
         except ValueError:
-            return None
+            return 0
 
         doc_num = self.tfidf_web.keys()[indx]               # now get its id (same index)
 

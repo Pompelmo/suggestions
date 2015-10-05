@@ -15,7 +15,6 @@ class Integration(object):
         self.mean_dict = mean_dict              # mean vector <-> website
         self.ball_tree = ball_tree              # nearest neighbors ball tree structure
         self.d2v_model = d2v_model              # description doc2vec model
-        # counter for keywords/token
 
     def ms_tfidf(self, url_id, n):
         """compute most similar websites using tfidf text model"""

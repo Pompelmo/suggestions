@@ -24,6 +24,7 @@ def suggestions():
 
     website = parameters['website']         # which website?
     model = parameters['model']             # which model?
+    number = parameters['num_max']
 
     try:                                    # modify total_score class parameters
         sf.parameters_choice(model)
@@ -31,6 +32,13 @@ def suggestions():
         response.body = json.dumps({"error": "wrong model in input, try: 'linear', 'simple weighted', "
                                              "'w2v', 'd2v' or 'tfidf",
                                     "expected": ".../suggest?website=your_url&model=your_model(&only_website=boolean)"})
+        return response
+
+    try:
+        num = int(number) / 3
+    except ValueError:
+        response.body = json.dumps({"error": "expected an integer in the 'n' field"})
+
         return response
 
     if 'only_website' in parameters.keys():     # do we want metadata or not?
@@ -46,7 +54,7 @@ def suggestions():
     else:
         only_website = False                    # if nothing is provided, we want metadata!!!
 
-    dictionary = c_json.get_json(website, sf, only_website)         # get dictionary from c_json
+    dictionary = c_json.get_json(website, sf, num, only_website)         # get dictionary from c_json
 
     # order everything by the total score
     try:
@@ -70,13 +78,11 @@ def boolean(string):
     else:
         raise KeyError
 
+
 @app.route('/')
 def index():
     return static_file('index.html', root='/home/user/code/static')
 
-@app.route('/<filename:path>')
-def server_static(filename):
-  return static_file(filename, root='/home/user/code/static')
 
 @error(500)
 def error500(error):            # try to explain how to make it works
