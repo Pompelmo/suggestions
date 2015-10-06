@@ -22,43 +22,67 @@ def suggestions():
     response.content_type = 'application/json'
     parameters = request.query.decode()     # retrieve query parameters
 
-    website = parameters['website']         # which website?
-    model = parameters['model']             # which model?
-    number = parameters['num_max']
+    # check if there are no mispellings or different parameters
+    accepted_input = ['website', 'model', 'num_max', 'only_website']
+    for key in parameters.keys():
+        if key not in accepted_input:
+            response.body = json.dumps({"error": "wrong parameter(s) in input",
+                                        "expected": ".../suggest?website=a_website[&model=(default='linear)'"
+                                                    "&num_max=(default=60)&only_website=(default=False)]"})
+            return response
 
-    try:                                    # modify total_score class parameters
-        sf.parameters_choice(model)
-    except KeyError:                        # or return a json with an error
+    # check if website value is provided or return an error
+    if 'website' in parameters.keys():
+        website = parameters['website']         # which website?
+    else:
+        response.body = json.dumps({"error": "parameter 'website' is missing"})
+        return response
+
+    # check if model parameter is provided, otherwise set default
+    if 'model' in parameters.keys():
+        model = parameters['model']             # which model?
+    else:
+        model = 'linear'
+
+    # check if num_max parameter is provided, otherwise set default
+    if 'num_max' in parameters.keys():
+        try:
+            num = int(parameters['num_max']) / 3
+        except ValueError:
+            response.body = json.dumps({"error": "expected an integer in the 'num_max' field"})
+            return response
+    else:
+        num = 20
+
+    #
+    models = ['linear', 'simple weighted', 'w2v', 'd2v', 'tfidf']
+    if sf.parameters_choice(model) not in models:
         response.body = json.dumps({"error": "wrong model in input, try: 'linear', 'simple weighted', "
-                                             "'w2v', 'd2v' or 'tfidf",
-                                    "expected": ".../suggest?website=your_url&model=your_model(&only_website=boolean)"})
+                                             "'w2v', 'd2v' or 'tfidf"})
         return response
 
-    try:
-        num = int(number) / 3
-    except ValueError:
-        response.body = json.dumps({"error": "expected an integer in the 'n' field"})
+    if num < 10:
+        num_min = 10
+    else:
+        num_min = num
 
-        return response
-
-    if 'only_website' in parameters.keys():     # do we want metadata or not?
+    if 'only_website' in parameters.keys():
         try:
             only_website = boolean(parameters['only_website'])
         except KeyError:                                            # or wrong input...
             response.body = json.dumps({"error": "wrong input on only_website: try 't', 'T', 'true', "
-                                        "'True' or '1' to eliminate metadata",
-                                        "expected":
-                                            ".../suggest?website=your_url&model=your_model(&only_website=boolean)"})
+                                        "'True' or '1' to eliminate metadata"})
             return response
 
     else:
         only_website = False                    # if nothing is provided, we want metadata!!!
 
-    dictionary = c_json.get_json(website, sf, num, only_website)         # get dictionary from c_json
+    dictionary = c_json.get_json(website, sf, num_min, only_website)         # get dictionary from c_json
 
     # order everything by the total score
     try:
-        dictionary_sort = OrderedDict(sorted(dictionary[u'output'].items(), key=lambda x: x[1][u'total_score']))
+        dictionary_sort = OrderedDict(sorted(dictionary[u'output'].items(),
+                                             key=lambda x: x[1][u'total_score'])[:num])
         # read it as a json object
         json_obj = {website: dictionary[website],
                     'output': [{'website': website, 'data': data} for website, data in dictionary_sort.iteritems()]}
