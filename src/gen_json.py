@@ -257,8 +257,9 @@ class CreateJson(object):
 
         # now a json obj is created: metadata of the input website, with the output given by the three models
         if d2v_web:
-            json_obj = {url: inp_data, 'output': d2v_web}  # it has be ordered according to the total score
+            json_obj = {'input_website_metadata': inp_data, 'output': d2v_web}
+            # it has be ordered according to the total score
         else:
-            json_obj = {url: 'website not present in the models'}
+            json_obj = {}
 
         return json_obj
