@@ -80,14 +80,14 @@ def suggestions():
     dictionary = c_json.get_json(website, sf, num_min, only_website)         # get dictionary from c_json
 
     # order everything by the total score
-    try:
+    if dictionary:
         dictionary_sort = OrderedDict(sorted(dictionary[u'output'].items(),
                                              key=lambda x: x[1][u'total_score'])[:num])
         # read it as a json object
         json_obj = {website: dictionary[website],
                     'output': [{'website': website, 'data': data} for website, data in dictionary_sort.iteritems()]}
-    except KeyError:
-        json_obj = dictionary
+    else:
+        json_obj = {'error': 'website not present in the models'}
 
     response.body = json.dumps(json_obj)
 
