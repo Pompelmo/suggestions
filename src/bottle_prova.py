@@ -33,7 +33,7 @@ def suggestions():
 
     # check if website value is provided or return an error
     if 'website' in parameters.keys():
-        website = parameters['website']         # which website?
+        weblist = request.forms.getall('website')         # which website?
     else:
         response.body = json.dumps({"error": "parameter 'website' is missing"})
         return response
@@ -77,15 +77,14 @@ def suggestions():
     else:
         only_website = False                    # if nothing is provided, we want metadata!!!
 
-    dictionary = c_json.get_json(website, sf, num_min, only_website)         # get dictionary from c_json
+    dictionary = c_json.get_json(weblist, sf, num_min, only_website)         # get dictionary from c_json
 
     # order everything by the total score
     if dictionary:
         dictionary_sort = OrderedDict(sorted(dictionary[u'output'].items(),
                                              key=lambda x: x[1][u'total_score'])[:num])
         # read it as a json object
-        json_obj = {website: dictionary[website],
-                    'output': [{'website': website, 'data': data} for website, data in dictionary_sort.iteritems()]}
+        json_obj = {'output': [{'website': website, 'data': data} for website, data in dictionary_sort.iteritems()]}
     else:
         json_obj = {'error': 'website not present in the models'}
 
