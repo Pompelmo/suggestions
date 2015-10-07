@@ -1,9 +1,10 @@
 # -------------------------------------------------------------
 # script to compute the top n similar or n nearest
-# websites to a given website
+# websites to a given list of websites
 # -------------------------------------------------------------
 
 from math import sqrt
+from vectors_mean import *
 
 
 class Integration(object):
@@ -16,26 +17,18 @@ class Integration(object):
         self.ball_tree = ball_tree              # nearest neighbors ball tree structure
         self.d2v_model = d2v_model              # description doc2vec model
 
-    def ms_tfidf(self, url_id, n):
+    def ms_tfidf(self, weblist, n):
         """compute most similar websites using tfidf text model"""
-        try:
-            indx = self.tfidf_web.values().index(url_id)        # try to get the index of the website
-        except ValueError:
-            return [], []
-        # indx = doc_num actually
-        doc_num = self.tfidf_web.keys()[indx]                           # now get its id (same index)
-
-        bow = self.corpus[doc_num]                                      # transform it in bow
-        tf_rep = self.tfidf[bow]                                        # get its tfidf representation
-
-        sims = self.index[tf_rep][:n+1]                                        # query for similarity
+        mean_vector, number = mean_tfidf(self.tfidf_web, self.corpus, self.tfidf, weblist)
+        number += n
+        sims = self.index[mean_vector][:number]                      # query for similarity
 
         rank = []
         scores = []
 
         for ite in sims:
             url = self.tfidf_web[ite[0]]                    # find document website name
-            if url != url_id:
+            if url not in weblist:
                 rank.append(url)                                # append website name
                 cosine_sim = float(ite[1])                      # cosine similarity
                 dist = sqrt(2.0 * (1.0 - cosine_sim)) / 2.0     # transform cosine similarity in euclidean distance
@@ -43,15 +36,13 @@ class Integration(object):
 
         return scores, rank
 
-    def ms_w2v_key(self, url_id, n):
+    def ms_w2v_key(self, weblist, n):
         """compute most similar websites using w2v keywords model"""
-        try:                                            # try to find a website in the dictionary
-            value = self.mean_dict[url_id]              # that associates name with mean vector value
-        except KeyError:
-            return [], []
 
+        mean_vec_w2v, number = mean_w2v(self.mean_dict, weblist)
         # compute the nearest neighbors with the constructed ball_tree
-        distance, index = self.ball_tree.query([value], k=n+1, return_distance=True, sort_results=True)
+        number += n
+        distance, index = self.ball_tree.query([mean_vec_w2v], k=number, return_distance=True, sort_results=True)
 
         # transform the result in lists
         dist = distance.tolist()[0]
@@ -65,27 +56,28 @@ class Integration(object):
         scores = []
 
         for i in range(0, len(dist)):
-            if keys[ind[i]] != url_id:              # do not return the same website
+            if keys[ind[i]] not in weblist:              # do not return the same website
                 url = keys[ind[i]]
                 rank.append(url)                    # append website name
                 scores.append(dist[i] / 2.0)          # append normalized distance
 
         return scores, rank
 
-    def ms_d2v(self, url_id, n):
+    def ms_d2v(self, weblist, n):
         """compute the most similar websites using d2v descriptions model"""
-        try:
-            ms = self.d2v_model.docvecs.most_similar(url_id, topn=n)        # compute most similar with d2v
-        except KeyError:
-            return [], []
 
+        mean_vec, number = mean_d2v(self.d2v_model, weblist)
         rank = []
         scores = []
 
-        for item in ms:
-            rank.append(item[0])                              # compute rank and scores list
-            cosine_sim = item[1]
-            dist = sqrt(2.0 * (1.0 - cosine_sim)) / 2.0       # transform cosine similarity in euclidean distance
-            scores.append(dist)
+        number += n
+        similar = self.d2v_model.docvecs.most_similar([mean_vec], topn=number)
+
+        for item in similar:
+            if item[0] not in weblist:
+                rank.append(item[0])                              # compute rank and scores list
+                cosine_sim = item[1]
+                dist = sqrt(2.0 * (1.0 - cosine_sim)) / 2.0       # transform cosine similarity in euclidean distance
+                scores.append(dist)
 
         return scores, rank
