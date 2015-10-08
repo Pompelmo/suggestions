@@ -34,6 +34,8 @@ def suggestions():
     # check if website value is provided or return an error
     if 'website' in parameters.keys():
         weblist = request.forms.getall('website')         # which website?
+        print weblist
+        print type(weblist)
     else:
         response.body = json.dumps({"error": "parameter 'website' is missing"})
         return response
