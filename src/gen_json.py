@@ -277,7 +277,7 @@ class CreateJson(object):
                 if inp_web:
                     input_metadata[website] = inp_web
                 else:
-                    input_metadata[website] = {'website not present in the models'}
+                    input_metadata[website] = {'website': 'not present in the models'}
 
             # it has be ordered according to the total score
             json_obj = {'input_website_metadata': input_metadata, 'output': d2v_web}
