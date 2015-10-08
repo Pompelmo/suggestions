@@ -14,7 +14,7 @@ def sparse_mean(sparse_vectors_list):
 
 
 def mean_tfidf(tfidf_web, corpus, tfidf, weblist):
-    web_vec_rep = list()  # collect all he vectorial representation in one list
+    web_vec_rep = list()  # collect all the vectorial representation in one list
 
     for item in weblist:
         try:
@@ -27,12 +27,16 @@ def mean_tfidf(tfidf_web, corpus, tfidf, weblist):
         bow = corpus[doc_num]                            # transform it in bow
         web_vec_rep.append(tfidf[bow])                   # get its tfidf representation
 
-    number = len(web_vec_rep)
-    # transform all the vectors to dense vectors, then compute their mean with numpy,
-    # transform it in unit vec and return to sparse vector representation (to be able to query for similarity)
-    mean_vector = sparse_mean(web_vec_rep)
+    if web_vec_rep:
+        number = len(web_vec_rep)
+        # transform all the vectors to dense vectors, then compute their mean with numpy,
+        # transform it in unit vec and return to sparse vector representation (to be able to query for similarity)
+        mean_vector = sparse_mean(web_vec_rep)
 
-    return mean_vector, number
+        return mean_vector, number
+
+    else:
+        return [], 0
 
 
 def mean_w2v(mean_dict, weblist):
@@ -46,13 +50,17 @@ def mean_w2v(mean_dict, weblist):
 
         web_vec_rep.append(value)
 
-    number = len(web_vec_rep)
-    mean_vec = np.mean(web_vec_rep, axis=0)
-    dim = np.linalg.norm(mean_vec)
-    if dim:
-        mean_vec /= dim             # if the vector is different from zero, normalize it
+    if web_vec_rep:
+        number = len(web_vec_rep)
+        mean_vec = np.mean(web_vec_rep, axis=0)
+        dim = np.linalg.norm(mean_vec)
+        if dim:
+            mean_vec /= dim             # if the vector is different from zero, normalize it
 
-    return mean_vec, number
+        return mean_vec, number
+
+    else:
+        return [], 0
 
 
 def mean_d2v(d2v_model, weblist):
@@ -64,10 +72,14 @@ def mean_d2v(d2v_model, weblist):
         if len(ms) == 100:
             web_vec_rep.append(ms)
 
-    number = len(web_vec_rep)
-    mean_vec = np.mean(web_vec_rep, axis=0)
-    dim = np.linalg.norm(mean_vec)
-    if dim:
-        mean_vec /= dim             # if the vector is different from zero, normalize it
+    if web_vec_rep:
+        number = len(web_vec_rep)
+        mean_vec = np.mean(web_vec_rep, axis=0)
+        dim = np.linalg.norm(mean_vec)
+        if dim:
+            mean_vec /= dim             # if the vector is different from zero, normalize it
 
-    return mean_vec, number
+        return mean_vec, number
+
+    else:
+        return [], 0
