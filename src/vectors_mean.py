@@ -1,0 +1,73 @@
+from gensim import matutils
+import numpy as np
+
+
+def sparse_mean(sparse_vectors_list):
+    dense_vectors_list = []
+
+    for vec in sparse_vectors_list:
+        dense_vectors_list.append(matutils.sparse2full(vec, length=519728))
+
+    mean = np.mean(dense_vectors_list, axis=0)
+
+    return matutils.unitvec(matutils.full2sparse(mean))
+
+
+def mean_tfidf(tfidf_web, corpus, tfidf, weblist):
+    web_vec_rep = list()  # collect all he vectorial representation in one list
+
+    for item in weblist:
+        try:
+            indx = tfidf_web.values().index(item)        # try to get the index of the website
+        except ValueError:
+            continue
+        # indx = doc_num actually
+        doc_num = tfidf_web.keys()[indx]                 # now get its id (same index)
+
+        bow = corpus[doc_num]                            # transform it in bow
+        web_vec_rep.append(tfidf[bow])                   # get its tfidf representation
+
+    number = len(web_vec_rep)
+    # transform all the vectors to dense vectors, then compute their mean with numpy,
+    # transform it in unit vec and return to sparse vector representation (to be able to query for similarity)
+    mean_vector = sparse_mean(web_vec_rep)
+
+    return mean_vector, number
+
+
+def mean_w2v(mean_dict, weblist):
+    web_vec_rep = []
+
+    for url in weblist:
+        try:                                            # try to find a website in the dictionary
+            value = mean_dict[url]              # that associates name with mean vector value
+        except KeyError:
+            continue
+
+        web_vec_rep.append(value)
+
+    number = len(web_vec_rep)
+    mean_vec = np.mean(web_vec_rep, axis=0)
+    dim = np.linalg.norm(mean_vec)
+    if dim:
+        mean_vec /= dim             # if the vector is different from zero, normalize it
+
+    return mean_vec, number
+
+
+def mean_d2v(d2v_model, weblist):
+    web_vec_rep = []
+
+    for url in weblist:
+        ms = d2v_model.docvecs[url]              # compute most similar with d2v
+
+        if len(ms) == 100:
+            web_vec_rep.append(ms)
+
+    number = len(web_vec_rep)
+    mean_vec = np.mean(web_vec_rep, axis=0)
+    dim = np.linalg.norm(mean_vec)
+    if dim:
+        mean_vec /= dim             # if the vector is different from zero, normalize it
+
+    return mean_vec, number

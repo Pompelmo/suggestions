@@ -86,7 +86,7 @@ def suggestions():
         # read it as a json object
         json_obj = {'output': [{'website': website, 'data': data} for website, data in dictionary_sort.iteritems()]}
     else:
-        json_obj = {'error': 'website not present in the models'}
+        json_obj = {'error': 'websites not present in the models'}
 
     response.body = json.dumps(json_obj)
 

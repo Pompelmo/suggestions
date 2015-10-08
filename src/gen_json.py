@@ -4,9 +4,9 @@
 # ------------------------------------------------------------
 
 from how_many import Counter
-from pairwise_distance_websites import *
+from pairwise_distance import *
 from vectors_mean import *
-from integration_websites import Integration
+from integration import Integration
 
 
 class CreateJson(object):
@@ -47,6 +47,9 @@ class CreateJson(object):
             self.key_len_in = len(keywords)
             self.des_len_in = len(description)
             self.txt_len_in = text_tokens
+
+            if self.key_len_in == 0 and self.des_len_in == 0 and self.txt_len_in == 0:
+                return {}
 
             input_dict = {'metadata': {'keywords': keywords, 'description': description,
                                        'keywords_number': self.key_len_in, 'desc_tokens': self.des_len_in,
@@ -257,8 +260,6 @@ class CreateJson(object):
     def get_json(self, weblist, sf, n, only_web=False):
         """generate the json object with the wanted information"""
 
-        # inp_data = self.inp_web_info(url, explicit=True)  # construct dict with input metadata
-
         # putting inp_data as first operation because it changes some class parameters then used in others
 
         d2v_web = self.d2v_websites(weblist, sf, n, only_web)       # construct dictionary doc2vec similar websites
@@ -270,9 +271,16 @@ class CreateJson(object):
 
         # now a json obj is created: metadata of the input website, with the output given by the three models
         if d2v_web:
-            # json_obj = {'input_website_metadata': inp_data, 'output': d2v_web}
+            input_metadata = dict()
+            for website in weblist:
+                inp_web = self.inp_web_info(website, explicit=True)
+                if inp_web:
+                    input_metadata[website] = inp_web
+                else:
+                    input_metadata[website] = {'website not present in the models'}
+
             # it has be ordered according to the total score
-            json_obj = {'output': d2v_web}
+            json_obj = {'input_website_metadata': input_metadata, 'output': d2v_web}
         else:
             json_obj = {}
 
