@@ -84,7 +84,8 @@ def suggestions():
         dictionary_sort = OrderedDict(sorted(dictionary[u'output'].items(),
                                              key=lambda x: x[1][u'total_score'])[:num])
         # read it as a json object
-        json_obj = {'output': [{'website': website, 'data': data} for website, data in dictionary_sort.iteritems()]}
+        json_obj = {'input_website_metadata': dictionary[u'input_website_metadata'],
+                    'output': [{'website': website, 'data': data} for website, data in dictionary_sort.iteritems()]}
     else:
         json_obj = {'error': 'websites not present in the models'}
 
