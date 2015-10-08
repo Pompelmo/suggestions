@@ -20,6 +20,10 @@ class Integration(object):
     def ms_tfidf(self, weblist, n):
         """compute most similar websites using tfidf text model"""
         mean_vector, number = mean_tfidf(self.tfidf_web, self.corpus, self.tfidf, weblist)
+
+        if not mean_vector:
+            return [], []
+
         number += n
         sims = self.index[mean_vector][:number]                      # query for similarity
 
@@ -40,6 +44,9 @@ class Integration(object):
         """compute most similar websites using w2v keywords model"""
 
         mean_vec_w2v, number = mean_w2v(self.mean_dict, weblist)
+
+        if not mean_vec_w2v:
+            return [], []
         # compute the nearest neighbors with the constructed ball_tree
         number += n
         distance, index = self.ball_tree.query([mean_vec_w2v], k=number, return_distance=True, sort_results=True)
@@ -67,6 +74,10 @@ class Integration(object):
         """compute the most similar websites using d2v descriptions model"""
 
         mean_vec, number = mean_d2v(self.d2v_model, weblist)
+
+        if not mean_vec:
+            return [], []
+
         rank = []
         scores = []
 
