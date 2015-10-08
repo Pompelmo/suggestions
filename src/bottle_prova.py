@@ -54,9 +54,9 @@ def suggestions():
     else:
         num = 20
 
-    #
-    models = ['linear', 'simple weighted', 'w2v', 'd2v', 'tfidf']
-    if sf.parameters_choice(model) not in models:
+    try:
+        sf.parameters_choice(model)
+    except KeyError:
         response.body = json.dumps({"error": "wrong model in input, try: 'linear', 'simple weighted', "
                                              "'w2v', 'd2v' or 'tfidf"})
         return response
