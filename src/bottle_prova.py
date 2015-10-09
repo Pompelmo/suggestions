@@ -103,10 +103,17 @@ def boolean(string):
     else:
         raise KeyError
 
+@app.route('/<filename:path>')
+def server_static(filename):
+    return static_file(filename, root='/home/user/code/static')
 
 @app.route('/')
 def index():
     return static_file('index.html', root='/home/user/code/static')
+
+@app.route('/doc')
+def index():
+    return static_file('suggest_doc.html', root='/home/user/code/static')
 
 
 @error(500)
