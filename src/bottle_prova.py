@@ -81,8 +81,9 @@ def suggestions():
 
     # order everything by the total score
     if dictionary:
+        n = min(int(parameters['num_max']), len(dictionary[u'output']))
         dictionary_sort = OrderedDict(sorted(dictionary[u'output'].items(),
-                                             key=lambda x: x[1][u'total_score'])[:num])
+                                             key=lambda x: x[1][u'total_score'])[:n])
         # read it as a json object
         json_obj = {'input_website_metadata': dictionary[u'input_website_metadata'],
                     'output': [{'website': website, 'data': data} for website, data in dictionary_sort.iteritems()]}
