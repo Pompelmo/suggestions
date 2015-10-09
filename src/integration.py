@@ -21,7 +21,7 @@ class Integration(object):
         """compute most similar websites using tfidf text model"""
         mean_vector, number = mean_tfidf(self.tfidf_web, self.corpus, self.tfidf, weblist)
 
-        if not mean_vector:
+        if number == 0:
             return [], []
 
         number += n
@@ -45,7 +45,7 @@ class Integration(object):
 
         mean_vec_w2v, number = mean_w2v(self.mean_dict, weblist)
 
-        if not mean_vec_w2v:
+        if number == 0:
             return [], []
         # compute the nearest neighbors with the constructed ball_tree
         number += n
@@ -75,7 +75,7 @@ class Integration(object):
 
         mean_vec, number = mean_d2v(self.d2v_model, weblist)
 
-        if not mean_vec:
+        if number == 0:
             return [], []
 
         rank = []
