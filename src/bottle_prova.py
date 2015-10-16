@@ -53,6 +53,7 @@ def suggestions():
             return response
     else:
         num = 20
+        parameters['num_max'] = 60
 
     try:
         sf.parameters_choice(model)
