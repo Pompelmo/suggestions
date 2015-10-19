@@ -198,6 +198,7 @@ class CreateJson(object):
         w2v_score, w2v_rank = self.integrate.ms_w2v_key(weblist, n)
         w2v_dict = dict()             # empty dict for json obj creation
 
+        # weblist is the input list of websites
         d2v_mean, num = mean_d2v(self.d2v_model, weblist)
         tfidf_mean, num = mean_tfidf(self.tfidf_web, self.corpus, self.tfidf, weblist)
 
@@ -257,7 +258,7 @@ class CreateJson(object):
 
         return w2v_dict
 
-    def get_json(self, weblist, sf, n, only_web=False):
+    def get_json(self, weblist, sf, n, only_web=False):                 # weblist must be a list
         """generate the json object with the wanted information"""
 
         # putting inp_data as first operation because it changes some class parameters then used in others
