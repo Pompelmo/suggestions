@@ -62,8 +62,8 @@ def suggestions():
                                              "'w2v', 'd2v' or 'tfidf"})
         return response
 
-    if num < 10:
-        num_min = 10
+    if num < 30:
+        num_min = 30
     else:
         num_min = num
 
@@ -104,13 +104,16 @@ def boolean(string):
     else:
         raise KeyError
 
+
 @app.route('/<filename:path>')
 def server_static(filename):
     return static_file(filename, root='/home/user/code/static')
 
+
 @app.route('/')
 def index():
     return static_file('index.html', root='/home/user/code/static')
+
 
 @app.route('/doc')
 def index():
