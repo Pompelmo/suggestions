@@ -10,6 +10,10 @@ from math import sqrt
 
 def tfidf_distance(corpora, tfidf, tfidf_web, mean_vec, web_2, loss_weight):
     """compute the distance (as a function of cosine similarity) between two websites using tfidf model"""
+
+    if len(mean_vec) == 0:
+        return loss_weight
+
     try:
         indx_2 = tfidf_web.values().index(web_2)
     except ValueError:
@@ -28,6 +32,10 @@ def tfidf_distance(corpora, tfidf, tfidf_web, mean_vec, web_2, loss_weight):
 
 def w2v_distance(mean_dict, mean_vec, web_2, loss_weight):
     """compute the distance (as a function of cosine similarity) between two websites using w2v model"""
+
+    if len(mean_vec) == 0:
+        return loss_weight
+
     try:
         vector_2 = np.array(mean_dict[web_2])        # already unit vectors by construction
     except KeyError:
@@ -38,6 +46,9 @@ def w2v_distance(mean_dict, mean_vec, web_2, loss_weight):
 
 def d2v_distance(d2v_model, mean_vec, web_2, loss_weight):
     """compute the distance(as a function of cosine similarity) between two websites using d2v model"""
+
+    if len(mean_vec) == 0:
+        return loss_weight
 
     vector_2 = np.array(d2v_model.docvecs[web_2])
 
