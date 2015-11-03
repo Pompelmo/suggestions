@@ -16,6 +16,7 @@ class ScoreFunc(object):
         self.mu_out_w = 0.0                             # exponent for output website metadata
         self.mu_out_d = 0.0                             # changed in "interactive.py"
         self.mu_out_t = 0.0
+        self.dist = False
 
     def parameters_choice(self, method):
         if method == "linear":
@@ -24,8 +25,15 @@ class ScoreFunc(object):
             self.w2v_weight = 1/3.0
             self.d2v_weight = 1/3.0
             self.tfidf_weight = 1/3.0
+            self.mu_in_w = 0.0
+            self.mu_in_d = 0.0
+            self.mu_in_t = 0.0
+            self.mu_out_w = 0.0
+            self.mu_out_d = 0.0
+            self.mu_out_t = 0.0
+            self.dist = False
 
-        elif method == "simple_weighted":
+        elif method == "simply_weighted":
             self.meta_len = True
             self.loss = 1.0
             self.w2v_weight = 1/3.0
@@ -37,6 +45,21 @@ class ScoreFunc(object):
             self.mu_out_w = 1.0
             self.mu_out_d = 1.0
             self.mu_out_t = 1.0
+            self.dist = False
+
+        elif method == "weight_dist":
+            self.meta_len = True
+            self.loss = 1.0
+            self.w2v_weight = 1/3.0
+            self.d2v_weight = 1/3.0
+            self.tfidf_weight = 1/3.0
+            self.mu_in_w = 1.0
+            self.mu_in_d = 1.0
+            self.mu_in_t = 1.0
+            self.mu_out_w = 1.0
+            self.mu_out_d = 1.0
+            self.mu_out_t = 1.0
+            self.dist = True
 
         elif method == "w2v":
             self.meta_len = False
@@ -44,6 +67,13 @@ class ScoreFunc(object):
             self.w2v_weight = 1.0
             self.d2v_weight = 0.0
             self.tfidf_weight = 0.0
+            self.mu_in_w = 0.0
+            self.mu_in_d = 0.0
+            self.mu_in_t = 0.0
+            self.mu_out_w = 0.0
+            self.mu_out_d = 0.0
+            self.mu_out_t = 0.0
+            self.dist = False
 
         elif method == "d2v":
             self.meta_len = False
@@ -51,6 +81,13 @@ class ScoreFunc(object):
             self.w2v_weight = 0.0
             self.d2v_weight = 1.0
             self.tfidf_weight = 0.0
+            self.mu_in_w = 0.0
+            self.mu_in_d = 0.0
+            self.mu_in_t = 0.0
+            self.mu_out_w = 0.0
+            self.mu_out_d = 0.0
+            self.mu_out_t = 0.0
+            self.dist = False
 
         elif method == "tfidf":
             self.meta_len = False
@@ -58,6 +95,13 @@ class ScoreFunc(object):
             self.w2v_weight = 0.0
             self.d2v_weight = 0.0
             self.tfidf_weight = 1.0
+            self.mu_in_w = 0.0
+            self.mu_in_d = 0.0
+            self.mu_in_t = 0.0
+            self.mu_out_w = 0.0
+            self.mu_out_d = 0.0
+            self.mu_out_t = 0.0
+            self.dist = False
 
         else:
             raise KeyError
@@ -100,9 +144,20 @@ class ScoreFunc(object):
                 text_len_out = self.loss
 
             # computing the partial sum with exponentials mu
-            w2v_part = self.w2v_weight * w2v_score * key_len_in ** self.mu_in_w * key_len_out ** self.mu_out_w
-            d2v_part = self.d2v_weight * d2v_score * des_len_in ** self.mu_in_d * des_len_out ** self.mu_out_d
-            tfidf_part = self.tfidf_weight * tfidf_score * text_len_in ** self.mu_in_t * text_len_out ** self.mu_out_t
+            if self.dist:
+                w2v_part = self.w2v_weight * w2v_score * (1.0 - key_len_in) ** self.mu_in_w \
+                           * (1.0 - key_len_out) ** self.mu_out_w
+                d2v_part = self.d2v_weight * d2v_score * (1.0 - des_len_in) ** self.mu_in_d \
+                           * (1.0 - des_len_out) ** self.mu_out_d
+                tfidf_part = self.tfidf_weight * tfidf_score * (1.0 - text_len_in) ** self.mu_in_t \
+                             * (1.0 - text_len_out) ** self.mu_out_t
+            else:
+                w2v_part = self.w2v_weight * w2v_score * key_len_in ** self.mu_in_w \
+                           * key_len_out ** self.mu_out_w
+                d2v_part = self.d2v_weight * d2v_score * des_len_in ** self.mu_in_d \
+                           * des_len_out ** self.mu_out_d
+                tfidf_part = self.tfidf_weight * tfidf_score * text_len_in ** self.mu_in_t \
+                             * text_len_out ** self.mu_out_t
 
             return w2v_part + d2v_part + tfidf_part
 
