@@ -2,17 +2,26 @@ from gen_json import CreateJson
 from loading import loading
 from bottle import Bottle, run, request, error, static_file, response
 from ScoreFunc import ScoreFunc
-from collections import OrderedDict
+from company_sim import *
 import json
 import pickle
+from datetime import datetime
 
 # load the models needed
 corpus, tfidf, index, tfidf_dict, tfidf_web, \
     mean_dict, ball_tree, d2v_model, des_dict, w2v_model, key_dict = loading()
 
+print datetime.now(), "loading company->websites dictionary"
 inp_file = open('source/id_key.pkl', 'r')
 id_key = pickle.load(inp_file)
 inp_file.close()
+
+print datetime.now(), "loading websites->company dictionary"
+inp_file = open('source/web_key.pkl', 'r')
+web_key = pickle.load(inp_file)
+inp_file.close()
+
+print datetime.now(), "initialize the classes"
 
 # class for rank, len, score computation
 c_json = CreateJson(corpus, tfidf, index, tfidf_dict, tfidf_web,
@@ -20,6 +29,8 @@ c_json = CreateJson(corpus, tfidf, index, tfidf_dict, tfidf_web,
 
 sf = ScoreFunc()  # class for total_score computation
 app = Bottle()  # bottle application
+
+print datetime.now(), "preparations finished"
 
 
 @app.route('/suggest')
@@ -40,15 +51,12 @@ def suggestions():
             return response
 
     # check if website value is provided or return an error
-    if 'website' in parameters.keys():
-        weblist = parameters.getall('website')         # which website?
-    elif 'company' in parameters.keys():
-        company = parameters['company']
-        try:
-            weblist = id_key[company]['websites']
-        except KeyError:
-            response.body = json.dumps({"error": "'company' not found"})
-            return response
+    if 'company' in parameters.keys():
+        companies = parameters.getall('company')        # get all the &company= in the query
+
+    elif 'website' in parameters.keys():        # if both company and website is present in the query, web is ignored
+        weblist = parameters.getall('website')         # get all the &website= in the query
+
     else:
         response.body = json.dumps({"error": "parameter 'website' or 'company' is missing"})
         return response
@@ -93,18 +101,33 @@ def suggestions():
     else:
         only_website = False                    # if nothing is provided, we want metadata!!!
 
-    dictionary = c_json.get_json(weblist, sf, num_min, only_website)         # get dictionary from c_json
+    if 'company' in parameters.keys():
 
-    # order everything by the total score
-    if dictionary:
-        n = min(int(parameters['num_max']), len(dictionary[u'output']))
-        dictionary_sort = OrderedDict(sorted(dictionary[u'output'].items(),
-                                             key=lambda x: x[1][u'total_score'])[:n])
-        # read it as a json object
-        json_obj = {'input_website_metadata': dictionary[u'input_website_metadata'],
-                    'output': [{'website': website, 'data': data} for website, data in dictionary_sort.iteritems()]}
-    else:
-        json_obj = {'error': 'websites not present in the models'}
+        print 'company'
+        a = datetime.now()
+        json_obj = company_similarity(c_json, sf, num_min, only_website,
+                                      companies, id_key, web_key, parameters['num_max'])
+
+        print 'end company'
+        print datetime.now() - a
+
+    if 'website' in parameters.keys():
+
+        print 'website'
+        a = datetime.now()
+
+        dictionary = c_json.get_json(weblist, sf, num_min, only_website)         # get dictionary from c_json
+
+        if dictionary:
+            n = min(int(parameters['num_max']), len(dictionary[u'output']))
+
+            json_obj = website_similarity(dictionary, n)
+
+        else:
+            json_obj = {'error': 'websites not present in the models'}
+
+        print 'website'
+        print datetime.now() - a
 
     response.body = json.dumps(json_obj)
 
