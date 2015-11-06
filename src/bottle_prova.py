@@ -43,11 +43,12 @@ def suggestions():
     for key in parameters.keys():
         if key not in accepted_input:
             response.body = json.dumps({"error": "wrong parameter(s) in input",
-                                        "expected": ".../suggest?website=a_website[&model=(default='linear)'"
-                                                    "&num_max=(default=60)&only_website=(default=False)]"
-                                                    "\n"
-                                                    "or .../suggest?company=atoka_company_id[&model=(default='linear)'"
-                                                    "&num_max=(default=60)&only_website=(default=False)]"})
+                                        "expected": {"websites": ".../suggest?website=a_website"
+                                                                 "[&model=(default='linear)'&num_max=(default=60)&"
+                                                                 "only_website=(default=False)]",
+                                                     "companies": ".../suggest?company=atoka_company_id"
+                                                                 "[&model=(default='linear)'&num_max=(default=60)&"
+                                                                 "only_website=(default=False)]"}})
             return response
 
     # check if website value is provided or return an error
@@ -111,7 +112,7 @@ def suggestions():
         print 'end company'
         print datetime.now() - a
 
-    if 'website' in parameters.keys():
+    elif 'website' in parameters.keys():
 
         print 'website'
         a = datetime.now()
