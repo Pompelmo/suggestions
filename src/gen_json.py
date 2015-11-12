@@ -3,46 +3,67 @@
 # to inout website and their scores
 # ------------------------------------------------------------
 
-from how_many import Counter
 from pairwise_distance import *
 from vectors_mean import *
 from integration import Integration
 
 
 class CreateJson(object):
-    def __init__(self, corpus, tfidf, index, tfidf_dict, tfidf_web,
-                 mean_dict, ball_tree, d2v_model, des_dict, w2v_model, key_dict):
+    def __init__(self, corpus, tfidf, index, tfidf_dict, tfidf_web, db_mean_value,
+                 ball_tree, id_to_web, d2v_model, db_des, w2v_model, db_key, len_dict):
         self.corpus = corpus                    # bow corpus
         self.tfidf = tfidf                      # tfidf model
         self.index = index                      # tfidf similarity matrix
         self.tfidf_dict = tfidf_dict            # dictionary for word <-> id
         self.tfidf_web = tfidf_web              # dictionary for doc n <-> website
-        self.mean_dict = mean_dict              # mean vector <-> website
+        self.db_mean_value = db_mean_value      # mean vector <-> website database
         self.ball_tree = ball_tree              # nearest neighbors ball tree structure
+        self.id_to_web = id_to_web              # dictioanry to translate nearest neighbor
         self.d2v_model = d2v_model              # description doc2vec model
-        self.des_dict = des_dict
+        self.db_des = db_des                    # website <-> description db connection
         self.w2v_model = w2v_model              # keywords word2vec model
-        self.key_dict = key_dict
+        self.db_key = db_key                    # website <-> keywords db connection
+        self.len_dict = len_dict                # website <-> metadata (len) dict
         self.loss = 1.0
         self.key_len_in = 0.0                           # metadata about input website
         self.des_len_in = 0.0                           # they are changed when asking for input web metadata
         self.txt_len_in = 0.0                           # in self.inp_web_info with explicit = True
-        self.counter = Counter(self.corpus, self.des_dict, self.key_dict,
-                               self.tfidf_dict, self.tfidf, self.tfidf_web)   # counter for keywords/token
+
         # to have the integration functions
         self.integrate = Integration(self.corpus, self.tfidf, self.index, self.tfidf_web,
-                                     self.mean_dict, self.ball_tree, self.d2v_model)
+                                     self.db_mean_value, self.ball_tree, self.id_to_web, self.d2v_model)
+
+    def count_text(self, url):
+        """function to count text tokens present in tfidf model"""
+        try:
+            indx = self.tfidf_web.values().index(url)       # try to get the index of the website
+        except ValueError:
+            return 0
+
+        doc_num = self.tfidf_web.keys()[indx]               # now get its id (same index)
+
+        bow = self.corpus[doc_num]                          # transform it in bow
+        tf_rap = self.tfidf[bow]                            # get its tfidf representation
+
+        return len(tf_rap)           # tfidf representation is format (index, value!=0)
 
     def inp_web_info(self, url, explicit=False):
         """information on the input website"""
-
-        keywords = self.counter.count_keywords(url)             # get keywords
-        description = self.counter.count_description(url)       # get description tokens
-        text_tokens = self.counter.count_text(url)              # get count of text tokens
-
         # if explicit = True, keywords and description tokens are explicitly written. Use it just for input data!
 
         if explicit:                        # enriched metadata, used only for input website
+
+            text_tokens = self.count_text(url)
+
+            try:
+                keywords = self.db_key[str(url)]
+            except KeyError:
+                keywords = []
+
+            try:
+                description = self.db_des[str(url)]
+            except KeyError:
+                description = []
 
             self.key_len_in = len(keywords)
             self.des_len_in = len(description)
@@ -53,20 +74,33 @@ class CreateJson(object):
 
             input_dict = {'metadata': {'keywords': keywords, 'description': description,
                                        'keywords_number': self.key_len_in, 'desc_tokens': self.des_len_in,
-                                       'text_tokens': self.txt_len_in}}
+                                       'text_tokens': self.txt_len_in},
+                          'link': 'http://' + url}
 
         else:
-            input_dict = {'metadata': {'keywords_number': len(keywords), 'desc_tokens': len(description),
-                                       'text_tokens': text_tokens}}
+            key_len, des_len, text_tokens = self.get_weight(url)
+
+            input_dict = {'metadata': {'keywords_number': key_len, 'desc_tokens': des_len,
+                                       'text_tokens': text_tokens},
+                          'link': 'http://' + url}
 
         return input_dict
 
     def get_weight(self, url):
-        keywords = self.counter.count_keywords(url)            # get keywords
-        description = self.counter.count_description(url)       # get description tokens
-        text_tokens = self.counter.count_text(url)              # get count of text tokens
 
-        return len(keywords), len(description), text_tokens
+        try:
+            key_len = self.len_dict[url][0]
+        except KeyError:
+            key_len = 0
+
+        try:
+            des_len = self.len_dict[url][1]
+        except KeyError:
+            des_len = 0
+
+        text_tokens = self.count_text(url)              # get count of text tokens
+
+        return key_len, des_len, text_tokens
 
     def text_websites(self, weblist, sf, n, only_web=False):
         """compute the 20 websites most similar according to tfidf, and compute their value also in the other models"""
@@ -76,7 +110,7 @@ class CreateJson(object):
 
         text_dict = dict()              # empty dict for json obj creation
 
-        w2v_mean, num = mean_w2v(self.mean_dict, weblist)
+        w2v_mean, num = mean_w2v(self.db_mean_value, weblist)
         d2v_mean, num = mean_d2v(self.d2v_model, weblist)
 
         if not only_web:            # if we want the entire dictionary with metadata and partial score
@@ -86,7 +120,7 @@ class CreateJson(object):
                 item = tfidf_rank[i]                    # get its name
                 text_dict[item] = {}
 
-                w2v_s = w2v_distance(self.mean_dict, w2v_mean, item, self.loss)      # distance according to w2v model
+                w2v_s = w2v_distance(self.db_mean_value, w2v_mean, item, self.loss)    # distance according to w2v model
                 d2v_s = d2v_distance(self.d2v_model, d2v_mean, item, self.loss)      # distance according to d2v model
 
                 metadata = self.inp_web_info(item)      # get its metadata
@@ -113,7 +147,7 @@ class CreateJson(object):
             for i in range(0, len(tfidf_rank)):
                 item = tfidf_rank[i]                    # get its name
 
-                w2v_s = w2v_distance(self.mean_dict, w2v_mean, item, self.loss)      # distance according to w2v model
+                w2v_s = w2v_distance(self.db_mean_value, w2v_mean, item, self.loss)      # distance according to w2v model
                 d2v_s = d2v_distance(self.d2v_model, d2v_mean, item, self.loss)      # distance according to d2v model
 
                 text_dict[item] = {}
@@ -126,6 +160,7 @@ class CreateJson(object):
                     total_score = sf.score_func(w2v_score=w2v_s, d2v_score=d2v_s, tfidf_score=tfidf_score[i])
 
                 text_dict[item].update({'total_score': total_score})
+                text_dict[item].update({'link': 'http://' + item})
 
         return text_dict
 
@@ -135,7 +170,7 @@ class CreateJson(object):
         d2v_score, d2v_rank = self.integrate.ms_d2v(weblist, n)
         d2v_dict = dict()           # empty dict for json obj creation
 
-        w2v_mean, num = mean_w2v(self.mean_dict, weblist)
+        w2v_mean, num = mean_w2v(self.db_mean_value, weblist)
         tfidf_mean, num = mean_tfidf(self.tfidf_web, self.corpus, self.tfidf, weblist)
 
         if not only_web:
@@ -145,7 +180,7 @@ class CreateJson(object):
                 item = d2v_rank[i]                  # get its name
                 d2v_dict[item] = {}
 
-                w2v_s = w2v_distance(self.mean_dict, w2v_mean, item, self.loss)   # distance according to w2v model
+                w2v_s = w2v_distance(self.db_mean_value, w2v_mean, item, self.loss)   # distance according to w2v model
                 # and according to tfidf
                 tfidf_s = tfidf_distance(self.corpus, self.tfidf, self.tfidf_web, tfidf_mean, item, self.loss)
 
@@ -176,7 +211,7 @@ class CreateJson(object):
                 item = d2v_rank[i]
                 d2v_dict[item] = {}
 
-                w2v_s = w2v_distance(self.mean_dict, w2v_mean, item, self.loss)   # distance according to w2v model
+                w2v_s = w2v_distance(self.db_mean_value, w2v_mean, item, self.loss)   # distance according to w2v model
                 # and according to tfidf
                 tfidf_s = tfidf_distance(self.corpus, self.tfidf, self.tfidf_web, tfidf_mean, item, self.loss)
 
@@ -189,6 +224,7 @@ class CreateJson(object):
                     total_score = sf.score_func(w2v_score=w2v_s, d2v_score=d2v_score[i], tfidf_score=tfidf_s)
 
                 d2v_dict[item].update({'total_score': total_score})
+                d2v_dict[item].update({'link': 'http://' + item})
 
         return d2v_dict
 
@@ -255,6 +291,7 @@ class CreateJson(object):
                     total_score = sf.score_func(w2v_score=w2v_score[i], d2v_score=d2v_s, tfidf_score=tfidf_s)
 
                 w2v_dict[item].update({'total_score': total_score})
+                w2v_dict[item].update({'link': 'http://' + item})
 
         return w2v_dict
 
@@ -273,10 +310,12 @@ class CreateJson(object):
         # now a json obj is created: metadata of the input website, with the output given by the three models
         if d2v_web:
             input_metadata = dict()
-            for website in weblist:
+
+            for website in weblist:                                 # input_website_metadata
                 inp_web = self.inp_web_info(website, explicit=True)
                 if inp_web:
                     input_metadata[website] = inp_web
+
                 else:
                     input_metadata[website] = 'website not present in the models'
 
@@ -286,4 +325,3 @@ class CreateJson(object):
             json_obj = {}
 
         return json_obj
-
