@@ -41,37 +41,49 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids, id_k
         for website in dictionary['input_website_metadata'].keys():                 # for all the websites
 
             try:            # not sure it is necessary
-                com_id = web_key[website]['legalName']
-
-                if com_id not in companies_input.keys():  # we need to say that we have a dictionary for every company
-                    companies_input[com_id] = dict()
-                    companies_input[com_id][website] = dictionary['input_website_metadata'][website]
-                else:
-                    companies_input[com_id][website] = dictionary['input_website_metadata'][website]
+                com_name = web_key[website]['legalName']    # company name
+                com_id = web_key[website]['id']             # company id to create atoka link
 
             except KeyError:
-                pass
+                continue
+
+            if com_name not in companies_input.keys():  # we need to say that we have a dictionary for every company
+                companies_input[com_name] = dict()
+                companies_input[com_name] = {'atoka_link': 'https://atoka.io/azienda/-/' + com_id + "/",
+                                             'ateco_code': web_key[website]['ateco'],
+                                             'websites': {}}
+
+            companies_input[com_name]['websites'][website] = dictionary['input_website_metadata'][website]
 
         # ------------------------------------------------------------------------------
         # create the output part
+        # ------------------------------------------------------------------------------
+
         companies = dict()
 
         # create a dictionary company -> list of websites
         for web_name in dictionary['output']:               # for every website in output
 
             try:                                        # try to find its company
-                company = web_key[web_name]['legalName']     # try to find its name
+                company_id = web_key[web_name]['id']     # try to find its name
+                company_name = web_key[web_name]['legalName']
 
-                if company not in companies.keys():     # websites of the same company together
-                    companies[company] = dict()
-                    companies[company]['websites'] = dict()
-                    companies[company]['websites'][web_name] = dictionary['output'][web_name]
-                    companies[company]['company_total_score'] = dictionary['output'][web_name]['total_score']
-                else:
-                    companies[company][web_name] = dictionary['output'][web_name]
-                    companies[company]['company_total_score'] += dictionary['output'][web_name]['total_score']
             except KeyError:
-                pass
+                continue
+
+            if company_name not in companies.keys():     # websites of the same company together
+                companies[company_name] = dict()
+                companies[company_name]['websites'] = dict()
+                companies[company_name]['company_total_score'] = 0
+
+            companies[company_name]['websites'][web_name] = {'metadata': dictionary['output'][web_name]['metadata'],
+                                                             'scores': dictionary['output'][web_name]['scores'],
+                                                             'total_score': dictionary['output'][web_name]['total_score'],
+                                                             'link': dictionary['output'][web_name]['link']}
+
+            companies[company_name]['company_total_score'] += dictionary['output'][web_name]['total_score']
+            companies[company_name]['atoka_link'] = 'https://atoka.io/azienda/-/' + company_id + "/"
+            companies[company_name]['ateco_code'] = web_key[web_name]['ateco']
 
         for company in companies:                       # for every company compute the mean score
             companies[company]['company_total_score'] /= float(len(companies[company])-1)     # mean value of the scores
@@ -79,9 +91,10 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids, id_k
         output = OrderedDict(sorted(companies.items(), key=lambda x: x[1]['company_total_score'])[:n])
 
         json_obj = {'input_company_metadata': companies_input,
-                    'output': [{'company': company, 'websites': data['websites'],
-                                'company_total_score': data['company_total_score']}
-                               for company, data in output.iteritems()]}
+                    'output': [{'company': key, 'websites': value['websites'],
+                                'atoka_link': value['atoka_link'], 'ateco_code': value['ateco_code'],
+                                'company_total_score': value['company_total_score']}
+                               for key, value in output.iteritems()]}
 
     else:
         json_obj = {'error': 'websites not present in the models'}
