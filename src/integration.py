@@ -8,13 +8,14 @@ from vectors_mean import *
 
 
 class Integration(object):
-    def __init__(self, corpus, tfidf, index, tfidf_web, mean_dict, ball_tree, d2v_model):
+    def __init__(self, corpus, tfidf, index, tfidf_web, db_mean_value, ball_tree, id_to_web, d2v_model):
         self.corpus = corpus                    # bow corpus
         self.tfidf = tfidf                      # tfidf model
         self.index = index                      # tfidf similarity matrix
         self.tfidf_web = tfidf_web              # dictionary for doc n <-> website
-        self.mean_dict = mean_dict              # mean vector <-> website
+        self.db_mean_value = db_mean_value      # mean vector <-> website database
         self.ball_tree = ball_tree              # nearest neighbors ball tree structure
+        self.id_to_web = id_to_web
         self.d2v_model = d2v_model              # description doc2vec model
 
     def ms_tfidf(self, weblist, n):
@@ -43,7 +44,7 @@ class Integration(object):
     def ms_w2v_key(self, weblist, n):
         """compute most similar websites using w2v keywords model"""
 
-        mean_vec_w2v, number = mean_w2v(self.mean_dict, weblist)
+        mean_vec_w2v, number = mean_w2v(self.db_mean_value, weblist)
 
         if number == 0:
             return [], []
@@ -55,7 +56,6 @@ class Integration(object):
         dist = distance.tolist()[0]
         ind = index.tolist()[0]
 
-        keys = self.mean_dict.keys()
         # have the list of websites names:
         # recall that dict.keys()[i] = key and dict.values()[i] = value are such that dict[key] = value
 
@@ -63,8 +63,8 @@ class Integration(object):
         scores = []
 
         for i in range(0, len(dist)):
-            if keys[ind[i]] not in weblist:              # do not return the same website
-                url = keys[ind[i]]
+            if self.id_to_web[ind[i]] not in weblist:              # do not return the same website
+                url = self.id_to_web[ind[i]]
                 rank.append(url)                    # append website name
                 scores.append(dist[i] / 2.0)          # append normalized distance
 
