@@ -39,12 +39,12 @@ def mean_tfidf(tfidf_web, corpus, tfidf, weblist):
         return [], 0
 
 
-def mean_w2v(mean_dict, weblist):
+def mean_w2v(db_mean_value, weblist):
     web_vec_rep = []
 
     for url in weblist:
         try:                                            # try to find a website in the dictionary
-            value = mean_dict[url]              # that associates name with mean vector value
+            value = db_mean_value[str(url)]             # that associates name with mean vector value
         except KeyError:
             continue
 
