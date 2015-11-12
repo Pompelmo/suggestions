@@ -8,8 +8,8 @@ import pickle
 from datetime import datetime
 
 # load the models needed
-corpus, tfidf, index, tfidf_dict, tfidf_web, \
-    mean_dict, ball_tree, d2v_model, des_dict, w2v_model, key_dict = loading()
+corpus, tfidf, index, tfidf_dict, tfidf_web, db_mean_value, \
+    ball_tree, id_to_web, d2v_model, db_des, w2v_model, db_key, len_dict = loading()
 
 print datetime.now(), "loading company->websites dictionary"
 inp_file = open('source/id_key.pkl', 'r')
@@ -24,8 +24,8 @@ inp_file.close()
 print datetime.now(), "initialize the classes"
 
 # class for rank, len, score computation
-c_json = CreateJson(corpus, tfidf, index, tfidf_dict, tfidf_web,
-                    mean_dict, ball_tree, d2v_model, des_dict, w2v_model, key_dict)
+c_json = CreateJson(corpus, tfidf, index, tfidf_dict, tfidf_web, db_mean_value,
+                    ball_tree, id_to_web, d2v_model, db_des, w2v_model, db_key, len_dict)
 
 sf = ScoreFunc()  # class for total_score computation
 app = Bottle()  # bottle application
@@ -104,18 +104,10 @@ def suggestions():
 
     if 'company' in parameters.keys():
 
-        print 'company'
-        a = datetime.now()
         json_obj = company_similarity(c_json, sf, num_min, only_website,
                                       companies, id_key, web_key, parameters['num_max'])
 
-        print 'end company'
-        print datetime.now() - a
-
     elif 'website' in parameters.keys():
-
-        print 'website'
-        a = datetime.now()
 
         dictionary = c_json.get_json(weblist, sf, num_min, only_website)         # get dictionary from c_json
 
@@ -126,9 +118,6 @@ def suggestions():
 
         else:
             json_obj = {'error': 'websites not present in the models'}
-
-        print 'website'
-        print datetime.now() - a
 
     response.body = json.dumps(json_obj)
 
