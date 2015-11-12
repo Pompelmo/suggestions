@@ -11,10 +11,10 @@ class ScoreFunc(object):
         self.tfidf_weight = 1.0                     # ditto
 
         self.mu_in_w = 0.0                          # exponent for input website metadata
-        self.mu_in_d = 0.0                          # changed in "interactive.py"
+        self.mu_in_d = 0.0
         self.mu_in_t = 0.0
         self.mu_out_w = 0.0                             # exponent for output website metadata
-        self.mu_out_d = 0.0                             # changed in "interactive.py"
+        self.mu_out_d = 0.0
         self.mu_out_t = 0.0
         self.dist = False
 
