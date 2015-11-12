@@ -30,14 +30,14 @@ def tfidf_distance(corpora, tfidf, tfidf_web, mean_vec, web_2, loss_weight):
     return sqrt(2.0 * (1.0 - cosine_sim)) / 2.0               # return the distance of the two vectors
 
 
-def w2v_distance(mean_dict, mean_vec, web_2, loss_weight):
+def w2v_distance(db_mean_value, mean_vec, web_2, loss_weight):
     """compute the distance (as a function of cosine similarity) between two websites using w2v model"""
 
     if len(mean_vec) == 0:
         return loss_weight
 
     try:
-        vector_2 = np.array(mean_dict[web_2])        # already unit vectors by construction
+        vector_2 = np.array(db_mean_value[str(web_2)])        # already unit vectors by construction
     except KeyError:
         return loss_weight                                  # return max distance if not found
 
