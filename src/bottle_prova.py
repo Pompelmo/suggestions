@@ -39,7 +39,7 @@ def suggestions():
     parameters = request.query.decode()     # retrieve query parameters
 
     # check if there are no mispellings or different parameters
-    accepted_input = ['website', 'model', 'num_max', 'only_website', 'company']
+    accepted_input = ['website', 'model', 'num_max', 'only_website', 'company', 'ateco']
     for key in parameters.keys():
         if key not in accepted_input:
             response.body = json.dumps({"error": "wrong parameter(s) in input",
@@ -48,12 +48,27 @@ def suggestions():
                                                                  "only_website=(default=False)]",
                                                      "companies": ".../suggest?company=atoka_company_id"
                                                                  "[&model=(default='linear)'&num_max=(default=60)&"
-                                                                 "only_website=(default=False)]"}})
+                                                                 "only_website=(default=False)&ateco=(false)]"}})
             return response
 
     # check if website value is provided or return an error
     if 'company' in parameters.keys():
         companies = parameters.getall('company')        # get all the &company= in the query
+
+        # if company, check if also ateco is present (or it is completely ignored if company is not present)
+        if 'ateco' in parameters.keys():
+            # check if it is given one of the possible ateco
+            ateco_par = ['strict', 'distance', 'auto', 'false']
+
+            if parameters['ateco'] in ateco_par:
+                ateco = parameters['ateco']
+            # if it is given a parameters not in the accepted ones, raise an error
+            else:
+                response.body = json.dumps({"error": "wrong ateco in input",
+                                            "expected": "'strict', 'distance', 'auto' or 'false'[default]"})
+                return response
+        else:
+            ateco = 'false'
 
     elif 'website' in parameters.keys():        # if both company and website is present in the query, web is ignored
         weblist = parameters.getall('website')         # get all the &website= in the query
@@ -79,34 +94,41 @@ def suggestions():
         num = 20
         parameters['num_max'] = 60
 
+    # try to see if the model parameter is correct
     try:
         sf.parameters_choice(model)
     except KeyError:
-        response.body = json.dumps({"error": "wrong model in input, try: 'linear', 'simple weighted', "
-                                             "'w2v', 'd2v' or 'tfidf"})
+        response.body = json.dumps({"error": "wrong model in input, try: 'linear', 'simply_weighted', "
+                                             "'weight_dist', 'w2v', 'd2v' or 'tfidf"})
         return response
 
+    # set a minimum length. The list is then cut at 'num_max'. This is to avoid excluding companies
+    # that have a higher score in the models, but a total score smaller than companies with lower singular scores
+    # in some models
     if num < 30:
         num_min = 30
     else:
         num_min = num
 
+    # check if 'only_website' parameters is present or set it to false
     if 'only_website' in parameters.keys():
+        # check if 'only_website' parameters have a format that can be read as true/false
         try:
             only_website = boolean(parameters['only_website'])
         except KeyError:                                            # or wrong input...
             response.body = json.dumps({"error": "wrong input on only_website: try 't', 'T', 'true', "
                                         "'True' or '1' to eliminate metadata"})
             return response
-
+    # set to false if not found
     else:
         only_website = False                    # if nothing is provided, we want metadata!!!
 
+    # check if the parameter 'company' is present
     if 'company' in parameters.keys():
-
+        # if it is, compute similar companies
         json_obj = company_similarity(c_json, sf, num_min, only_website,
-                                      companies, id_key, web_key, parameters['num_max'])
-
+                                      companies, id_key, web_key, parameters['num_max'], ateco)
+    # otherwise try with 'website'
     elif 'website' in parameters.keys():
 
         dictionary = c_json.get_json(weblist, sf, num_min, only_website)         # get dictionary from c_json
