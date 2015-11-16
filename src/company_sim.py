@@ -6,7 +6,8 @@ from collections import OrderedDict
 import re
 
 
-def company_similarity(create_json, sf, num_min, only_website, company_ids, id_key, web_key, num_max, ateco):
+def company_similarity(create_json, sf, num_min, only_website, company_ids,
+                       id_key, web_key, num_max, ateco, ateco_dist=5):
 
     companies_input = dict()        # here it is going to be stored the metadata
     weblist = list()                # here are going to be stored all the websites of the companies asked
@@ -81,7 +82,7 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids, id_k
 
                 ateco_code = web_key[web_name]['ateco']
 
-                if ateco_filter(ateco, ateco_list, ateco_code):
+                if ateco_filter(ateco, ateco_list, ateco_code, ateco_dist):
                     # only for the companies that respect the ateco request
                     if company_name not in companies.keys():     # websites of the same company together
                         companies[company_name] = dict()
@@ -183,7 +184,7 @@ def website_similarity(dictionary, n):
     return json_obj
 
 
-def ateco_filter(ateco_par, ateco_company_1, ateco_company_2):
+def ateco_filter(ateco_par, ateco_company_1, ateco_company_2, ateco_dist=5):
     # we expect ateco_par to be 'strict', 'distance' or 'false'.
     # ateco_company_1 to be a list of lists code-label and ateco_company_2 a list code-label
 
@@ -191,15 +192,14 @@ def ateco_filter(ateco_par, ateco_company_1, ateco_company_2):
         ateco_codes = [item[0] for item in ateco_company_1]         # list of all the codes
         ateco_labels = [item[1] for item in ateco_company_1]        # list of all the labels
     else:
-        ateco_codes = ateco_company_1[0]
-        ateco_labels = ateco_company_1[1]
+        ateco_codes = [ateco_company_1[0]]
+        ateco_labels = [ateco_company_1[1]]
         ateco_company_1 = [ateco_company_1]
 
     if ateco_par == 'strict':
         # 'strict' means that we eliminate all the companies that have ateco codes
         # different from all the ones in the input companies list
         if ateco_company_2[0] in ateco_codes or ateco_company_2[1] in ateco_labels:
-            # if ateco_codes and ateco_labels are just string and not lists, 'in' works as an equality
             return True
         else:
             return False
@@ -208,7 +208,7 @@ def ateco_filter(ateco_par, ateco_company_1, ateco_company_2):
         # 'distance' means that eliminate all the companies that have an ateco code
         # that is too distant from the ones in the companies list
         for item in ateco_company_1:
-            if ateco_distance(item, ateco_company_2) <= 5:  # 5 was chosen by sentiment
+            if ateco_distance(item, ateco_company_2) <= ateco_dist:  # 5 was chosen by sentiment
                 return True
         return False
 

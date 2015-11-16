@@ -39,7 +39,7 @@ def suggestions():
     parameters = request.query.decode()     # retrieve query parameters
 
     # check if there are no mispellings or different parameters
-    accepted_input = ['website', 'model', 'num_max', 'only_website', 'company', 'ateco']
+    accepted_input = ['website', 'model', 'num_max', 'only_website', 'company', 'ateco', 'ateco_dist']
     for key in parameters.keys():
         if key not in accepted_input:
             response.body = json.dumps({"error": "wrong parameter(s) in input",
@@ -53,6 +53,7 @@ def suggestions():
 
     # check if website value is provided or return an error
     if 'company' in parameters.keys():
+        ateco_dist = 5
         companies = parameters.getall('company')        # get all the &company= in the query
 
         # if company, check if also ateco is present (or it is completely ignored if company is not present)
@@ -62,6 +63,12 @@ def suggestions():
 
             if parameters['ateco'] in ateco_par:
                 ateco = parameters['ateco']
+                if ateco == 'distance':
+                    try:
+                        ateco_dist = parameters['ateco_dist']
+                    except KeyError:
+                        pass
+
             # if it is given a parameters not in the accepted ones, raise an error
             else:
                 response.body = json.dumps({"error": "wrong ateco in input",
@@ -127,7 +134,7 @@ def suggestions():
     if 'company' in parameters.keys():
         # if it is, compute similar companies
         json_obj = company_similarity(c_json, sf, num_min, only_website,
-                                      companies, id_key, web_key, parameters['num_max'], ateco)
+                                      companies, id_key, web_key, parameters['num_max'], ateco, ateco_dist)
     # otherwise try with 'website'
     elif 'website' in parameters.keys():
 
