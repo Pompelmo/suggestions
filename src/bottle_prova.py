@@ -53,7 +53,6 @@ def suggestions():
 
     # check if website value is provided or return an error
     if 'company' in parameters.keys():
-        ateco_dist = 5
         companies = parameters.getall('company')        # get all the &company= in the query
 
         # if company, check if also ateco is present (or it is completely ignored if company is not present)
@@ -67,7 +66,7 @@ def suggestions():
                     try:
                         ateco_dist = parameters['ateco_dist']
                     except KeyError:
-                        pass
+                        ateco_dist = 5
 
             # if it is given a parameters not in the accepted ones, raise an error
             else:
