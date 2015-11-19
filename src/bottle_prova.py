@@ -54,6 +54,7 @@ def suggestions():
     # check if website value is provided or return an error
     if 'company' in parameters.keys():
         companies = parameters.getall('company')        # get all the &company= in the query
+        ateco_dist = 5
 
         # if company, check if also ateco is present (or it is completely ignored if company is not present)
         if 'ateco' in parameters.keys():
@@ -62,11 +63,13 @@ def suggestions():
 
             if parameters['ateco'] in ateco_par:
                 ateco = parameters['ateco']
-                if ateco == 'distance':
+
+                if ateco == 'distance' and 'ateco_dist' in parameters.keys():
                     try:
-                        ateco_dist = parameters['ateco_dist']
-                    except KeyError:
-                        ateco_dist = 5
+                        ateco_dist = int(parameters['ateco_dist'])
+                    except ValueError:
+                        response.body = json.dumps({"error": "expected an integer in the 'ateco_dist' field"})
+                        return response
 
             # if it is given a parameters not in the accepted ones, raise an error
             else:
