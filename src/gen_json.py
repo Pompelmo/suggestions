@@ -147,7 +147,7 @@ class CreateJson(object):
             for i in range(0, len(tfidf_rank)):
                 item = tfidf_rank[i]                    # get its name
 
-                w2v_s = w2v_distance(self.db_mean_value, w2v_mean, item, self.loss)      # distance according to w2v model
+                w2v_s = w2v_distance(self.db_mean_value, w2v_mean, item, self.loss)    # distance according to w2v model
                 d2v_s = d2v_distance(self.d2v_model, d2v_mean, item, self.loss)      # distance according to d2v model
 
                 text_dict[item] = {}
