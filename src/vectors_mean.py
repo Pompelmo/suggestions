@@ -52,7 +52,7 @@ def mean_w2v(db_mean_value, weblist):
 
     if web_vec_rep:
         number = len(web_vec_rep)
-        mean_vec = np.mean(web_vec_rep, axis=0)
+        mean_vec = np.mean(web_vec_rep, axis=0)         # get the mean vector of the websites vector rep
         dim = np.linalg.norm(mean_vec)
         if dim:
             mean_vec /= dim             # if the vector is different from zero, normalize it
