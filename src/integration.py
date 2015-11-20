@@ -36,7 +36,7 @@ class Integration(object):
             if url not in weblist:
                 rank.append(url)                                # append website name
                 cosine_sim = float(ite[1])                      # cosine similarity
-                dist = sqrt(2.0 * (1.0 - cosine_sim)) / 2.0     # transform cosine similarity in euclidean distance
+                dist = sqrt(2.0 * abs(1.0 - cosine_sim)) / 2.0     # transform cosine similarity in euclidean distance
                 scores.append(dist)                             # append score (the smaller the better)
 
         return scores, rank
@@ -88,7 +88,7 @@ class Integration(object):
             if item[0] not in weblist:
                 rank.append(item[0])                              # compute rank and scores list
                 cosine_sim = item[1]
-                dist = sqrt(2.0 * (1.0 - cosine_sim)) / 2.0       # transform cosine similarity in euclidean distance
+                dist = sqrt(2.0 * abs(1.0 - cosine_sim)) / 2.0       # transform cosine similarity in euclidean distance
                 scores.append(dist)
 
         return scores, rank
