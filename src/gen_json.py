@@ -160,7 +160,7 @@ class CreateJson(object):
                     total_score = sf.score_func(w2v_score=w2v_s, d2v_score=d2v_s, tfidf_score=tfidf_score[i])
 
                 text_dict[item].update({'total_score': total_score})
-                text_dict[item].update({'link': 'http://' + item})
+                text_dict[item].update({'link': 'http://' + item})  # since we are not using self.inp_web_info
 
         return text_dict
 
@@ -184,7 +184,7 @@ class CreateJson(object):
                 # and according to tfidf
                 tfidf_s = tfidf_distance(self.corpus, self.tfidf, self.tfidf_web, tfidf_mean, item, self.loss)
 
-                metadata = self.inp_web_info(item)  # and retrieve its metadata
+                metadata = self.inp_web_info(item)  # and retrieve its metadata and link
                 d2v_dict[item].update(metadata)  # json obj I part: metadata
 
                 scores = {'w2v': w2v_s,                 # json obj II part: scores according to the three models
@@ -224,7 +224,7 @@ class CreateJson(object):
                     total_score = sf.score_func(w2v_score=w2v_s, d2v_score=d2v_score[i], tfidf_score=tfidf_s)
 
                 d2v_dict[item].update({'total_score': total_score})
-                d2v_dict[item].update({'link': 'http://' + item})
+                d2v_dict[item].update({'link': 'http://' + item})  # since we are not using self.inp_web_info
 
         return d2v_dict
 
@@ -291,7 +291,7 @@ class CreateJson(object):
                     total_score = sf.score_func(w2v_score=w2v_score[i], d2v_score=d2v_s, tfidf_score=tfidf_s)
 
                 w2v_dict[item].update({'total_score': total_score})
-                w2v_dict[item].update({'link': 'http://' + item})
+                w2v_dict[item].update({'link': 'http://' + item})  # since we are not using self.inp_web_info
 
         return w2v_dict
 
