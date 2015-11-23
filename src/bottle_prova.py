@@ -80,7 +80,7 @@ def suggestions():
         return response     # return error if last model given is wrong
 
     # check if num_max parameter is provided and it is an integer (otherwise set default or return an error)
-    if 'num_max' in parameters.keys():
+    if 'num_max' in parameters.keys():      # alowed more than 1 num_max input, this line => kept just the last given
         try:        # check if it's an integer
             num = int(parameters['num_max']) / 3            # top "num" websites retrieved for model
         except ValueError:
