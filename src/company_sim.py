@@ -4,10 +4,11 @@
 
 from collections import OrderedDict
 import re
+from urlparse import urlparse
 
 
 def company_similarity(create_json, sf, num_min, only_website, company_ids,
-                       id_key, web_key, num_max, ateco, ateco_dist=5):
+                       id_key, web_key, num_max, location, ateco, ateco_dist=5):
 
     companies_input = dict()        # here it is going to be stored the metadata
     weblist = list()                # here are going to be stored all the websites of the companies asked
@@ -24,18 +25,14 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
             companies_input[company_id] = "company not found"
             i += 1
 
-        try:
-            atk = id_key[company_id]['ateco']
-            ateco_list += atk
-        except KeyError:
-            pass
-
     if len(company_ids) == i:                           # if no company is found...
         json_obj = {'error': 'no companies found'}
         return json_obj                                 # return an error
 
+    web_parsed = [urlparse(website).netloc for website in weblist]
+
     # with all the websites, apply gen_json--> find similar websites!!!
-    dictionary = create_json.get_json(weblist, sf, num_min, only_website)
+    dictionary = create_json.get_json(web_parsed, sf, num_min, only_website)
 
     if dictionary:          # if we have similar websites, let's create the json object to be returned
         # ------------------------------------------------------------------------------
@@ -44,43 +41,61 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
         n = min(int(num_max), len(dictionary[u'output']))    # maximum number of company selected
         ateco_input = list()
 
-        for website in dictionary['input_website_metadata'].keys():                 # for all the websites
+        for website in dictionary['input_website_metadata'].keys():    # for all the websites in input
 
-            try:            # not sure it is necessary
-                com_name = web_key[website]['legalName']    # company name
-                com_id = web_key[website]['id']             # company id to create atoka link
-                ateco_input.append(web_key[website]['ateco'])
-
+            try:
+                com_id = web_key[website]
             except KeyError:
                 continue
 
-            if com_name not in companies_input.keys():
-                # specify we have a dictionary for every company, since we add the key 'websites' below
-                companies_input[com_name] = dict()
-                companies_input[com_name] = {'atoka_link': 'https://atoka.io/azienda/-/' + com_id + "/",
-                                             'ateco_code': web_key[website]['ateco'],
-                                             'websites': {}}
+            # if a comp_id can be retrieved from web_key, we are sure the other information can be retrieved from
+            # id_key, due to the way we created them (see csv_to_pickle.py)
+            com_name = id_key[com_id]['legalName']    # company name
+            ateco_input.append(web_key[com_id]['ateco'])
+            macroregion = id_key[com_id]['macroregion']
+            region = id_key[com_id]['region']
+            province = id_key[com_id]['province']
+            municipality = id_key[com_id]['municipality']
 
+            if com_name not in companies_input.keys():
+                # for every company in input create a dictionary with its informations
+                companies_input[com_name] = {'atoka_link': 'https://atoka.io/azienda/-/' + com_id + "/",  # link atoka
+                                             'ateco': id_key[com_id]['ateco'],                # its ateco code/label
+                                             'locations': {'macroregion': macroregion,        # info on the locations
+                                                           'region': region,
+                                                           'province': province,
+                                                           'municipality': municipality},
+                                             'websites': {}}                                   # its websites
+
+            # not_pars_web = id_key[com_id]
             companies_input[com_name]['websites'][website] = dictionary['input_website_metadata'][website]
 
         # ------------------------------------------------------------------------------
         # create the output part
         # ------------------------------------------------------------------------------
 
-        companies = dict()
+        companies = dict()          # where to store the (filtered) output companies
 
         if ateco == 'false' or ateco == 'strict' or ateco == 'distance':
+
+            for webs in weblist:                    # for every website in the input list, retireve its ateco
+                try:
+                    atk = id_key[web_key[webs]]['ateco']    # this is used if ateco!='auto'
+                    ateco_list += atk
+                except KeyError:
+                    pass
+
             # create a dictionary company -> list of websites
             for web_name in dictionary['output']:               # for every website in output
 
                 try:                                        # try to find its company
-                    company_id = web_key[web_name]['id']     # try to find its name
-                    company_name = web_key[web_name]['legalName']
+                    company_id = web_key[web_name]
 
                 except KeyError:
                     continue
 
-                ateco_code = web_key[web_name]['ateco']
+                company_name = id_key[company_id]['legalName']
+                ateco_code = id_key[company_id]['ateco']
 
                 if ateco_filter(ateco, ateco_list, ateco_code, ateco_dist):
                     # only for the companies that respect the ateco request
@@ -95,7 +110,7 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
                     # and we add for every company the total score, the link to atoka and the ateco code
                     companies[company_name]['company_total_score'] += dictionary['output'][web_name]['total_score']
                     companies[company_name]['atoka_link'] = 'https://atoka.io/azienda/-/' + company_id + "/"
-                    companies[company_name]['ateco_code'] = web_key[web_name]['ateco']
+                    companies[company_name]['ateco'] = ateco_code
 
             for company in companies:
                 # for every company compute the mean score
@@ -106,7 +121,7 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
 
             json_obj = {'input_company_metadata': companies_input,
                         'output': [{'company': key, 'websites': value['websites'],
-                                    'atoka_link': value['atoka_link'], 'ateco_code': value['ateco_code'],
+                                    'atoka_link': value['atoka_link'], 'ateco': value['ateco'],
                                     'company_total_score': value['company_total_score']}
                                    for key, value in output.iteritems()]}
 
@@ -117,10 +132,12 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
             for web_name in dictionary['output']:               # for every website in output
 
                 try:                                        # try to find its company
-                    ateco_output.append(web_key[web_name]['ateco'])     # try to find its ateco
+                    company_id = web_key[web_name]     # try to find its ateco
 
                 except KeyError:
                     continue
+
+                ateco_output.append(id_key[company_id]['ateco'])     # try to find its ateco
 
             good_ateco = ateco_auto(ateco_input, ateco_output)
 
@@ -146,7 +163,7 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
                     # and we add for every company the total score, the link to atoka and the ateco code
                     companies[company_name]['company_total_score'] += dictionary['output'][web_name]['total_score']
                     companies[company_name]['atoka_link'] = 'https://atoka.io/azienda/-/' + company_id + "/"
-                    companies[company_name]['ateco_code'] = web_key[web_name]['ateco']
+                    companies[company_name]['ateco'] = web_key[web_name]['ateco']
 
             for company in companies:
                 # for every company compute the mean score
@@ -157,7 +174,7 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
 
             json_obj = {'input_company_metadata': companies_input,
                         'output': [{'company': key, 'websites': value['websites'],
-                                    'atoka_link': value['atoka_link'], 'ateco_code': value['ateco_code'],
+                                    'atoka_link': value['atoka_link'], 'ateco': value['ateco'],
                                     'company_total_score': value['company_total_score']}
                                    for key, value in output.iteritems()]}
     else:
