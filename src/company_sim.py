@@ -36,12 +36,12 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
 
     # with all the websites, apply gen_json--> find similar websites!!!
     dictionary = create_json.get_json(weblist, sf, num_min, only_website)
-    n = min(int(num_max), len(dictionary[u'output']))
 
     if dictionary:          # if we have similar websites, let's create the json object to be returned
         # ------------------------------------------------------------------------------
         # create the input_website_metadata part
 
+        n = min(int(num_max), len(dictionary[u'output']))    # maximum number of company selected
         ateco_input = list()
 
         for website in dictionary['input_website_metadata'].keys():                 # for all the websites
@@ -161,7 +161,7 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
                                     'company_total_score': value['company_total_score']}
                                    for key, value in output.iteritems()]}
     else:
-        json_obj = {'error': 'websites not present in the models'}
+        json_obj = {'error': 'websites of the companies not present in the models'}
 
     return json_obj
 
