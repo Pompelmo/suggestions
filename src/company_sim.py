@@ -1,6 +1,10 @@
-# ----------------------------------------------------------------------
-# Given a company, get its similar ones. (using websites)
-# ----------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------
+# Given a company/websites, get its similar ones. (using websites) + eventually some filter for companies
+# ---------------------------------------------------------------------------------------------------------
+
+# id_key and web_key are constructed in 'csv_to_pickle.py'. They are such that info are all contained
+# in id_key, and web_key is used when we have a website and we want to know which company it belongs to.
+# Since they both are created from the same csv, if c_id=web_key[website] exists, it implies id_key[c_id] exists
 
 from collections import OrderedDict
 import re
@@ -33,10 +37,13 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
 
     # with all the websites, apply gen_json--> find similar websites!!!
     dictionary = create_json.get_json(web_parsed, sf, num_min, only_website)
+    # with all the websites, apply gen_json --> find similar websites!!!
 
     if dictionary:          # if we have similar websites, let's create the json object to be returned
         # ------------------------------------------------------------------------------
+        # ----------------------------------------
         # create the input_website_metadata part
+        # ----------------------------------------
 
         n = min(int(num_max), len(dictionary[u'output']))    # maximum number of company selected
         ateco_input = list()
@@ -59,6 +66,7 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
 
             if com_name not in companies_input.keys():
                 # for every company in input create a dictionary with its informations
+                # for every new company in input create a dictionary with its informations...
                 companies_input[com_name] = {'atoka_link': 'https://atoka.io/azienda/-/' + com_id + "/",  # link atoka
                                              'ateco': id_key[com_id]['ateco'],                # its ateco code/label
                                              'locations': {'macroregion': macroregion,        # info on the locations
@@ -66,13 +74,16 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
                                                            'province': province,
                                                            'municipality': municipality},
                                              'websites': {}}                                   # its websites
+                                             # locations info, maybe eliminate from final json, atm kept for debugging
+                                             # ['location'] contains a dictionary with info on location
 
             # not_pars_web = id_key[com_id]
+            # ...and add all its websites information
             companies_input[com_name]['websites'][website] = dictionary['input_website_metadata'][website]
 
-        # ------------------------------------------------------------------------------
-        # create the output part
-        # ------------------------------------------------------------------------------
+        # --------------------------------------------------------------------------------------
+        # create the output part (suggested companies with their information) - FILTER BY ATECO
+        # --------------------------------------------------------------------------------------
 
         companies = dict()          # where to store the (filtered) output companies
 
@@ -169,8 +180,10 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
                 # for every company compute the mean score
                 companies[company]['company_total_score'] /= float(len(companies[company])-1)
 
-            # order the companies in output by means of the total score
             output = OrderedDict(sorted(companies.items(), key=lambda x: x[1]['company_total_score'])[:n])
+        # -----------------------------------------------------------------------------------------
+        # create the output part (suggested companies with their information) - FILTER BY LOCATION
+        # -----------------------------------------------------------------------------------------
 
             json_obj = {'input_company_metadata': companies_input,
                         'output': [{'company': key, 'websites': value['websites'],
@@ -178,6 +191,9 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
                                     'company_total_score': value['company_total_score']}
                                    for key, value in output.iteritems()]}
     else:
+        # --------------------------------------------------------------------------------------
+        # create the output part (suggested companies with their information) - FILTER BY LOCATION
+        # --------------------------------------------------------------------------------------
         json_obj = {'error': 'websites of the companies not present in the models'}
 
     return json_obj
