@@ -21,7 +21,6 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
         try:                                        # and try to find their websites
             websites = id_key[company_id]['websites']
             weblist += websites                     # and add the found websites to their websites list
-
         except KeyError:
             companies_input[company_id] = "company not found"
 
@@ -51,11 +50,10 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
             # if a comp_id can be retrieved from web_key, we are sure the other information can be retrieved from
             # id_key, due to the way we created them (see csv_to_pickle.py)
             com_name = id_key[com_id]['legalName']    # company name
-            ateco_input.append(web_key[com_id]['ateco'])
+            ateco_input.append(id_key[com_id]['ateco'])
 
             if location != 'false':
                 location_list.append(id_key[com_id]['location'][location])
-
 
             if com_name not in companies_input.keys():
                 # for every new company in input create a dictionary with its informations...
@@ -109,10 +107,7 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
                     companies[company_name]['company_total_score'] += dictionary['output'][web_name]['total_score']
                     companies[company_name]['atoka_link'] = 'https://atoka.io/azienda/-/' + company_id + "/"
                     companies[company_name]['ateco'] = ateco_code
-
-            for company in companies:
-                # for every company compute the mean score
-                companies[company]['company_total_score'] /= float(len(companies[company])-1)
+                    companies[company_name]['location'] = id_key[company_id]['location']
 
         elif ateco == 'auto':
             # create a dictionary company -> list of websites
@@ -155,9 +150,9 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
                     companies[company_name]['ateco'] = id_key[company_id]['ateco']
                     companies[company_name]['location'] = id_key[company_id]['location']
 
-            for company in companies:
-                # for every company compute the mean score
-                companies[company]['company_total_score'] /= float(len(companies[company])-1)
+        for company in companies:
+            # for every company compute the mean score
+            companies[company]['company_total_score'] /= float(len(companies[company])-1)
 
         # -----------------------------------------------------------------------------------------
         # create the output part (suggested companies with their information) - FILTER BY LOCATION
