@@ -9,6 +9,7 @@
 from collections import OrderedDict
 import re
 
+
 def company_similarity(create_json, sf, num_min, only_website, company_ids,
                        id_key, web_key, num_max, location, ateco, ateco_dist=5):
 
@@ -19,7 +20,7 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
     for company_id in company_ids:                  # iterate through all the companies in the query
 
         try:                                        # and try to find their websites
-            websites = id_key[company_id]['websites']
+            websites = id_key[str(company_id)]['websites']
             weblist += websites                     # and add the found websites to their websites list
         except KeyError:
             companies_input[company_id] = "company not found"
@@ -49,20 +50,20 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
 
             # if a comp_id can be retrieved from web_key, we are sure the other information can be retrieved from
             # id_key, due to the way we created them (see csv_to_pickle.py)
-            com_name = id_key[com_id]['legalName']    # company name
-            ateco_input.append(id_key[com_id]['ateco'])
-
-            if location != 'false':
-                location_list.append(id_key[com_id]['location'][location])
+            com_name = id_key[str(com_id)]['legalName']    # company name
+            ateco_input.append(id_key[str(com_id)]['ateco'])
 
             if com_name not in companies_input.keys():
                 # for every new company in input create a dictionary with its informations...
                 companies_input[com_name] = {'atoka_link': 'https://atoka.io/azienda/-/' + com_id + "/",  # link atoka
-                                             'ateco': id_key[com_id]['ateco'],                # its ateco code/label
+                                             'ateco': id_key[str(com_id)]['ateco'],                # its ateco code/label
                                              # locations info, maybe eliminate from final json, atm kept for debugging
                                              # ['location'] contains a dictionary with info on location
-                                             'locations': id_key[com_id]['location'],
+                                             'locations': id_key[str(com_id)]['location'],
                                              'websites': {}}      # its websites (added in next line)
+                if location != 'false':
+                    for loc in id_key[str(com_id)]['location'][location]:
+                        location_list.append(loc)
 
             # ...and add all its websites information
             companies_input[com_name]['websites'][website] = dictionary['input_website_metadata'][website]
@@ -77,7 +78,7 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
 
             for webs in weblist:                    # for every website in the input list, retrieve its ateco
                 try:
-                    atk = id_key[web_key[webs]]['ateco']    # this is used if ateco!='auto'
+                    atk = id_key[str(web_key[webs])]['ateco']    # this is used if ateco!='auto'
                     ateco_list += atk
                 except KeyError:
                     pass
@@ -90,8 +91,8 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
                 except KeyError:
                     continue
 
-                company_name = id_key[company_id]['legalName']          # retrieve company name
-                ateco_code = id_key[company_id]['ateco']                # and ateco
+                company_name = id_key[str(company_id)]['legalName']          # retrieve company name
+                ateco_code = id_key[str(company_id)]['ateco']                # and ateco
 
                 if ateco_filter(ateco, ateco_list, ateco_code, ateco_dist):
                     # only for the companies that respect the ateco request
@@ -107,7 +108,7 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
                     companies[company_name]['company_total_score'] += dictionary['output'][web_name]['total_score']
                     companies[company_name]['atoka_link'] = 'https://atoka.io/azienda/-/' + company_id + "/"
                     companies[company_name]['ateco'] = ateco_code
-                    companies[company_name]['location'] = id_key[company_id]['location']
+                    companies[company_name]['location'] = id_key[str(company_id)]['location']
 
         elif ateco == 'auto':
             # create a dictionary company -> list of websites
@@ -120,7 +121,7 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
                 except KeyError:
                     continue
 
-                ateco_output.append(id_key[company_id]['ateco'])     # append its ateco
+                ateco_output.append(id_key[str(company_id)]['ateco'])     # append its ateco
 
             good_ateco = ateco_auto(ateco_input, ateco_output)      # find more frequent ateco
 
@@ -130,9 +131,9 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
                 except KeyError:
                     continue
 
-                company_name = id_key[company_id]['legalName']
+                company_name = id_key[str(company_id)]['legalName']
 
-                if id_key[company_id]['ateco'][0] in good_ateco:
+                if id_key[str(company_id)]['ateco'][0] in good_ateco:
                     if company_name not in companies.keys():     # websites of the same company together
                         companies[company_name] = dict()
                         companies[company_name]['websites'] = dict()
@@ -147,8 +148,8 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
                     # and we add for every company the total score, the link to atoka and the ateco code
                     companies[company_name]['company_total_score'] += dictionary['output'][web_name]['total_score']
                     companies[company_name]['atoka_link'] = 'https://atoka.io/azienda/-/' + company_id + "/"
-                    companies[company_name]['ateco'] = id_key[company_id]['ateco']
-                    companies[company_name]['location'] = id_key[company_id]['location']
+                    companies[company_name]['ateco'] = id_key[str(company_id)]['ateco']
+                    companies[company_name]['location'] = id_key[str(company_id)]['location']
 
         for company in companies:
             # for every company compute the mean score
@@ -158,6 +159,7 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
         # create the output part (suggested companies with their information) - FILTER BY LOCATION
         # -----------------------------------------------------------------------------------------
 
+        comp_to_be_filtered = list()
         if location != 'false':             # so its 'macroregon', 'region', 'province' or 'municipality'
 
             for company in companies:       # for every company that its good for the ateco filter
@@ -170,7 +172,10 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
                         break       # no need to complete the cycle
 
                 if to_be_filtered:
-                    del companies[company]          # maybe smarter way of doing it?
+                    comp_to_be_filtered.append(company)         # maybe smarter way of doing it?
+
+            for item in comp_to_be_filtered:
+                del companies[item]
 
         # order the companies that still are in output by means of the total score
         output = OrderedDict(sorted(companies.items(), key=lambda x: x[1]['company_total_score'])[:n])
@@ -335,12 +340,12 @@ def ateco_auto(input_list, output_list):
             frequency[element] = 0
         frequency[element] += 1
 
-    max_freq = max(frequency.values())
+    max_freq = max(frequency.values())           # how frequent is the most frequent ateco?
 
     good_ateco = list()         # list for the ateco code that are frequent enough
 
     for code in frequency:
-        if frequency[code] >= 0.25 * max_freq:
-            good_ateco.append(code)
+        if frequency[code] >= 0.25 * max_freq:          # keep just atecos that are at least 25%*max frequent.
+            good_ateco.append(code)                     # probably there is a better choice
 
     return good_ateco
