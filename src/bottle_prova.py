@@ -10,18 +10,17 @@ from company_sim import *
 import json
 import pickle
 from datetime import datetime
+import shelve
 
 # load the models needed
 corpus, tfidf, index, tfidf_dict, tfidf_web, db_mean_value, \
     ball_tree, id_to_web, d2v_model, db_des, w2v_model, db_key, len_dict = loading()
 
 # load two dictionaries that are needed in company similarity
-print datetime.now(), "loading company->websites dictionary"
-inp_file = open('source/id_key.pkl', 'r')
-id_key = pickle.load(inp_file)
-inp_file.close()
+print datetime.now(), "loading company -> websites database"
+id_key = shelve.open('source/id_key_db.db')
 
-print datetime.now(), "loading websites->company dictionary"
+print datetime.now(), "loading websites -> company dictionary"
 inp_file = open('source/web_key.pkl', 'r')
 web_key = pickle.load(inp_file)
 inp_file.close()
