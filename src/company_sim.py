@@ -12,6 +12,8 @@ import re
 
 def company_similarity(create_json, sf, num_min, only_website, company_ids,
                        id_key, web_key, num_max, location, ateco, ateco_dist=5):
+    """This function is used to construct a company similarity based on website similarity.
+    It works in the same way, but filter on ateco and location can be added"""
 
     companies_input = dict()        # here it is going to be stored the metadata
     weblist = list()                # here are going to be stored all the websites of the companies asked
