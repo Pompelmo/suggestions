@@ -39,7 +39,7 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
         # create the input_website_metadata part
         # ----------------------------------------
 
-        n = min(int(num_max), len(dictionary['output']))    # maximum number of company selected
+        n = min(int(num_max), len(dictionary['output']))
         ateco_input = list()                # used for the filters
         location_list = list()           # collect the locations we want to filter of the input
 
@@ -155,7 +155,7 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
 
         for company in companies:
             # for every company compute the mean score
-            companies[company]['company_total_score'] /= float(len(companies[company])-1)
+            companies[company]['company_total_score'] /= float(len(companies[company]['websites'])-1)
 
         # -----------------------------------------------------------------------------------------
         # create the output part (suggested companies with their information) - FILTER BY LOCATION
