@@ -227,8 +227,8 @@ class CreateJson(object):
                 else:       # otherwise don't retrieve them
                     total_score = sf.score_func(w2v_score=w2v_s, d2v_score=d2v_score[i], tfidf_score=tfidf_s)
 
-                d2v_dict[item].update({'total_score': total_score})     # attach total score and link, since we are not
-                d2v_dict[item].update({'link': 'http://' + item})       # using self.inp_web_info for meta & link
+                d2v_dict[item]['total_score'] = total_score     # attach total score and link, since we are not
+                d2v_dict[item]['link'] = 'http://' + item       # using self.inp_web_info for meta & link
 
         return d2v_dict
 
@@ -295,7 +295,7 @@ class CreateJson(object):
                     total_score = sf.score_func(w2v_score=w2v_score[i], d2v_score=d2v_s, tfidf_score=tfidf_s)
 
                 w2v_dict[item]['total_score'] = total_score  # attach total score and link. link addes since
-                w2v_dict[item].update['link'] = 'http://' + item   # we are not using self.inp_web_info
+                w2v_dict[item]['link'] = 'http://' + item   # we are not using self.inp_web_info
 
         return w2v_dict
 
