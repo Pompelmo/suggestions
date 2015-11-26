@@ -152,7 +152,7 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
 
         for company in companies:
             # for every company compute the mean score
-            companies[company]['company_total_score'] /= float(len(companies[company]['websites'])-1)
+            companies[company]['company_total_score'] /= float(len(companies[company]['websites']))
 
         # -----------------------------------------------------------------------------------------
         # create the output part (suggested companies with their information) - FILTER BY LOCATION
