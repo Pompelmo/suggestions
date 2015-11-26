@@ -142,10 +142,7 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
                         companies[company_name]['company_total_score'] = 0
 
                     # construct output part: contains websites, with their metadata
-                    companies[company_name]['websites'][web_name] = {'metadata': dictionary['output'][web_name]['metadata'],
-                                                                     'scores': dictionary['output'][web_name]['scores'],
-                                                                     'total_score': dictionary['output'][web_name]['total_score'],
-                                                                     'link': dictionary['output'][web_name]['link']}
+                    companies[company_name]['websites'][web_name] = dictionary['output'][web_name]
 
                     # and we add for every company the total score, the link to atoka and the ateco code
                     companies[company_name]['company_total_score'] += dictionary['output'][web_name]['total_score']
