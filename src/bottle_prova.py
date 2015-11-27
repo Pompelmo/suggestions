@@ -205,7 +205,22 @@ def index():
 
 @app.route('/doc')
 def index():
-    return static_file('suggest_doc.html', root='/home/user/code/static')
+    return static_file('main.html', root='/home/user/code/static')
+
+
+@app.route('/model')
+def index():
+    return static_file('model.html', root='/home/user/code/static')
+
+
+@app.route('/ateco')
+def index():
+    return static_file('ateco.html', root='/home/user/code/static')
+
+
+@app.route('/location')
+def index():
+    return static_file('location.html', root='/home/user/code/static')
 
 
 @error(500)             # I think it doesn't work properly....500 cannot be rewritten
