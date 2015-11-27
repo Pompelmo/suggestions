@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head><meta charset="utf-8" />
-<title>App doc-Copy1</title>
+<title>Main</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
@@ -174,16 +174,7 @@ div#notebook {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h3> Websites/Companies similarity documentation </h3>
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<h4> Introduction </h4>
+<h3> Websites/Company recommender system </h3>
 </div>
 </div>
 </div>
@@ -194,9 +185,9 @@ div#notebook {
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>The endpoint <code>http://hetzy2.spaziodati.eu:1234/suggest</code> can be queried to get similar websites providing a list of websites or similar companies given a list of companies. Here there are two examples in the browser regarding <code>SpazioDati</code>:</p>
 <ul>
-<li><p><a href="http://hetzy2.spaziodati.eu:1234/suggest?website=www.spaziodati.eu&amp;website=spaziodati.eu&amp;model=linear&amp;num_max=m10&amp;only_website=false">http://hetzy2.spaziodati.eu:1234/suggest?website=www.spaziodati.eu&amp;website=spaziodati.eu&amp;model=linear&amp;num_max=m10&amp;only_website=false</a></p>
+<li><p><a href="http://hetzy2.spaziodati.eu:1234/suggest?website=www.spaziodati.eu&website=spaziodati.eu&model=linear&num_max=10&only_website=false" target="_blank">http://hetzy2.spaziodati.eu:1234/suggest?website=www.spaziodati.eu&website=spaziodati.eu&model=linear&num_max=10&only_website=false</a></p>
 </li>
-<li><p><a href="http://hetzy2.spaziodati.eu:1234/suggest?company=6da785b3adf2&amp;model=linear&amp;num_max=10&amp;only_website=true&amp;ateco=strict">http://hetzy2.spaziodati.eu:1234/suggest?company=6da785b3adf2&amp;model=linear&amp;num_max=10&amp;only_website=true&amp;ateco=strict</a></p>
+<li><p><a href="http://hetzy2.spaziodati.eu:1234/suggest?company=6da785b3adf2&model=linear&num_max=10&only_website=true&ateco=strict" target="_blank">http://hetzy2.spaziodati.eu:1234/suggest?company=6da785b3adf2&model=linear&num_max=10&only_website=true&ateco=strict</a></p>
 </li>
 </ul>
 
@@ -208,12 +199,16 @@ div#notebook {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>The parameters that have to be provided are <strong>website</strong> (that can be one or more) or <strong>company</strong> (that can be one or more). Other parameters can be provided, and they are:</p>
+<p>The minimum parameters that have to be provided are <strong>website</strong> or <strong>company</strong>. 
+Both parameters can be used more than once, providing in this way a list of websites/companies (es: <a href="http://hetzy2.spaziodati.eu:1234/suggest?company=6da785b3adf2&company=20533a607faf&num_max=10&ateco=auto" target="_blank">...company=6da785b3adf2&company=20533a607faf</a>).
+If both parameters are provided, websites is ignored.</p>
+<p>Other parameters that can be provided are:</p>
 <ul>
-<li>model: chose among linear[default], simply_weighted, weight_dist, w2v, d2v, tfidf</li>
-<li>num_max: int, is the maximum number of websites/companies returned</li>
-<li>only_website: boolean (false by default) use this to see websites metadata</li>
-<li>ateco: (only for companies) chose among false[default], strict, auto, distance (and provide distance using ateco_dist=5[default])</li>
+<li><a href="http://hetzy2.spaziodati.eu:1234/model" target="_blank">model</a>: linear, simple_weighted, w2v, d2v, tfidf. <em>Default value: linear</em>.</li>
+<li><strong>num_max</strong>: number of maximum websites/companies returned. Every model is queried for its <strong>n/3</strong> most similar websites. If a suggested website is returned by more than one model, repetition are not shown. <em>Default value: 60</em>.</li>
+<li><strong>only_website</strong>: this has to be a boolean. Set to true to have just suggested websites url and total score, without websites metadata and partial scores. <em>Default value: False</em>.</li>
+<li><a href="http://hetzy2.spaziodati.eu:1234/ateco" target="_blank">ateco</a>: (only for companies) it can be chosen among: false, strict, auto, distance (and provide distance using ateco_dist=5[default]). <em>Default value: false</em>.</li>
+<li><a href="http://hetzy2.spaziodati.eu:1234/location" target="_blank">location</a>: (only for companies) it can be chosen among: false, macroregion, region, province, municipality. <em>Default value: false</em>.</li>
 </ul>
 
 </div>
@@ -224,7 +219,8 @@ div#notebook {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h4> Websites similarity </h4>
+<p><em>A more user-friendly application can be used <a href="http://hetzy2.spaziodati.eu:1234" target="_blank"> here </a>.</em></p>
+
 </div>
 </div>
 </div>
@@ -233,19 +229,16 @@ div#notebook {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>It is possible to query for similar <strong>websites</strong>, using one or more websites as an input. A json object with suggested similar websites and their metadata is returned. The websites in output are suggested by some models described later on this doc. The output websites are ordered by means of a combination of distances between them and the input websites, computed with respect the models.</p>
-<p>In particular, those models are embedding models, i.e. models that try to map some input, e.g. word and sentences, in a vector space. In order to suggest websites, three different models trained on three different website attributes are used. The models are the following:</p>
+<h4> Similarity calculation </h4><p>Both the recommender, the one for websites and the one for companies are based on a website suggestion algorithm. The company recommender simply takes the websites of the companies and suggest similar websites, that are associated with other companies.</p>
+<p>The similarity is computed using three different models on three different atttributes of the websites. Two models are word embedding models, i.e. models that try to map words, given sentences in input, into a vector space. The idea is that is that similar words would be mapped into cosine-similar vectors. The third model is a bag of word models, i.e. it is based on the counting of the words. More precisely:</p>
 <ul>
-<li>word2vec, trained on websites keywords</li>
-<li>doc2vec, trained on websites descriptions</li>
-<li><p>tfidf, trained on websites crawled texts
-Since we use distances, the lower the score, the better.</p>
-<p>The general endpoint is:</p>
-<p><code>http://hetzy2.spaziodati.eu:1234/suggest?website=input_website(&amp;website=input_website2...)&amp;model=model_type&amp;num_max=max_web_returned&amp;only_website=boolean</code></p>
-</li>
+<li><a href="http://papers.nips.cc/paper/5021-distributed-representations-of-words-and-phrases-and-their-compositionality.pdf" target="_blank">Word2Vec</a> model was trained on the keywords of the websites (~2milions documents) </li>
+<li><a href="https://cs.stanford.edu/~quocle/paragraph_vector.pdf" target="_blank">Doc2Vec</a> model was trained on the description of the websites (~500K documents)</li>
+<li><a href="https://en.wikipedia.org/wiki/Tf–idf" target="_blank">Tf-idf</a> model was trained on the crawled text of the websites (~750K documents)</li>
 </ul>
-<p>Here <em>model</em> it's not a keywords for the models above, but indicates a set of parameters used in a function that combine the scores from the three models, to obtain a <em>total_score</em>. This function is going to be explained in the <strong>models</strong> paragraph. Other parameters are explained in the <strong>parameters</strong> paragraph.</p>
-<p>A more user-friendly application can be used from <a href="http://hetzy2.spaziodati.eu:1234">http://hetzy2.spaziodati.eu:1234</a> .</p>
+<p>Using those models, we infere a similarity/distance between websites. A query is performed in every model asking for similar websites, i.e. vector representation of websites that are near the vector representation of the input website, according to that model. Then, for every vector representation of the retrieved website, its distance to the vector representation of the input website is computed according to all the models not used for its retrieval.</p>
+<p><em>As an example, suppose a query on Word2Vec model for 10 similar websites to one given website. Their distances to the input vector are retrieved with the query. Those 10 websites and the input websites are transformed in their vectorial representation according to Doc2Vec. The distances between those vectors are computed. Then the same thing is done using Tf-idf model. In this way, for every one of the 10 similar websites we have three different distances to the input websites. The similarity query and the procedure that followed is then repeated using Doc2Vec and Tf-idf.</em></p>
+<p>Finally, the suggested websites by means of a <a href="http://hetzy2.spaziodati.eu:1234/model" target="_blank">score function</a> that uses those three distances as a input.</p>
 
 </div>
 </div>
@@ -255,51 +248,42 @@ Since we use distances, the lower the score, the better.</p>
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h4> Companies similarity </h4>
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p>The endpoint works in a similar way in the case we query for <strong>companies</strong>. Given a list of companies ids (Atoka ids), a json object is returned with suggested similar companies and their metadata. The company similarity is based on the websites similarity. The websites of the companies in the input list are retrieved, obtaining a list of websites that are owned by the input companies. Then, the websites similarity is applied to this list. The returned websites are then associated with the company they are owned by. In the end, a list of companies with their respective websites is returned. The companies are ordered by means of the mean value of the total scores of their websites. The total score of their websites is computed at the same way we computed the scores in the case of website similarity.</p>
-<p>To query for companies, the following endpoint can be used:</p>
-<p><code>http://hetzy2.spaziodati.eu:1234/suggest?company=input_company_id(&amp;company=input_company_id2...)&amp;model=model_type&amp;num_max=max_companies_returned&amp;only_website</code>
-<code>=boolean&amp;ateco=ateco_filter(&amp;ateco_dist=5)</code></p>
-<p>Notice that the parameters are the same as in the websites similarity. Since we are applying website similarity, they have also the same meaning.</p>
-<p>If both <em>company</em> and <em>website</em> parameters are present, <em>company</em> overwrites <em>website</em>, that is ignored.</p>
-
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p>A request returns a <strong>json object</strong> divided in two main parts:</p>
+<p><h4> Filters </h4>
+In <strong>company</strong> similarity there is the possibility to filter the results. The results can be filtered by:</p>
 <ul>
-<li>in the case of <strong>websites similarity</strong>:<ul>
-<li>input_website_metadata: contains metadata of the website(s) in input</li>
-<li>output: suggested websites (with their metadata)</li>
+<li><a href="http://hetzy2.spaziodati.eu:1234/ateco" target="_blank">ateco</a>: using the <a hreff="http://en.istat.it/strumenti/definizioni/ateco/" target="_blank">ateco code</a> of the company in input, some less relevant result are excluded.</li>
+<li><a href="http://hetzy2.spaziodati.eu:1234/location" target="_blank">location</a>: this filter allows to select only the companies in the same area (<a href="http://hetzy2.spaziodati.eu:1234/suggest?company=6da785b3adf2&num_max=10&only_website=true&location=municipality" target="_blank">example</a>).</li>
+</ul>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h4> Results and examples </h4><p>A request to the API returns a <strong>json object</strong> divided in two main parts:</p>
+<ul>
+<li>in case of <strong>websites similarity</strong>:<ul>
+<li>input_website_metadata: contains metadata of the website(s) in input.</li>
+<li>output: suggested websites and their metadata.</li>
 </ul>
 </li>
-<li>in the case of <strong>companies similarity</strong>:<ul>
-<li>input_company_metadata: contains metadata of the website(s), ateco code and an Atoka link of the companies in input</li>
-<li>output: ordered list of suggested companies, every one with its websites and their metadata, ateco code and Atoka link of the company</li>
+<li>in case of <strong>companies similarity</strong>:<ul>
+<li>input_company_metadata: contains metadata of the website(s), ateco code, location informations and an Atoka link to the companies in input.</li>
+<li>output: ordered list of suggested companies, every one with its websites and their metadata, ateco code, location informations and Atoka link to the company.</li>
 </ul>
 </li>
 </ul>
-<p>For example, the suggested websites for <code>www.spaziodati.eu</code> can be retrieved using the following code:</p>
+<p>For example, the <strong>suggested websites</strong> for <code>www.spaziodati.eu</code> can be retrieved using the following code:</p>
 
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[3]:</div>
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span class="kn">import</span> <span class="nn">requests</span>
@@ -315,76 +299,20 @@ Since we use distances, the lower the score, the better.</p>
 </div>
 </div>
 
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area"><div class="prompt output_prompt">Out[3]:</div>
-
-
-<div class="output_text output_subarea output_execute_result">
-<pre>{u&apos;input_website_metadata&apos;: {u&apos;www.spaziodati.eu&apos;: {u&apos;link&apos;: u&apos;http://www.spaziodati.eu&apos;,
-   u&apos;metadata&apos;: {u&apos;desc_tokens&apos;: 9,
-    u&apos;description&apos;: [u&apos;help&apos;,
-     u&apos;organizations&apos;,
-     u&apos;exploit&apos;,
-     u&apos;dat&apos;,
-     u&apos;linked&apos;,
-     u&apos;dat&apos;,
-     u&apos;big&apos;,
-     u&apos;dat&apos;,
-     u&apos;technologies&apos;],
-    u&apos;keywords&apos;: [u&apos;open dat&apos;, u&apos;graph&apos;, u&apos;developer&apos;, u&apos;dat&apos;, u&apos;linked dat&apos;],
-    u&apos;keywords_number&apos;: 5,
-    u&apos;text_tokens&apos;: 1264}}},
- u&apos;output&apos;: [{u&apos;data&apos;: {u&apos;link&apos;: u&apos;http://spaziodati.eu&apos;,
-    u&apos;metadata&apos;: {u&apos;desc_tokens&apos;: 9,
-     u&apos;keywords_number&apos;: 5,
-     u&apos;text_tokens&apos;: 1264},
-    u&apos;scores&apos;: {u&apos;d2v&apos;: 0.21513806283473969,
-     u&apos;tfidf&apos;: 0.11228013806916579,
-     u&apos;w2v&apos;: 0.0},
-    u&apos;total_score&apos;: 0.10913940030130181},
-   u&apos;website&apos;: u&apos;spaziodati.eu&apos;},
-  {u&apos;data&apos;: {u&apos;link&apos;: u&apos;http://blog.spaziodati.eu&apos;,
-    u&apos;metadata&apos;: {u&apos;desc_tokens&apos;: 16,
-     u&apos;keywords_number&apos;: 8,
-     u&apos;text_tokens&apos;: 1877},
-    u&apos;scores&apos;: {u&apos;d2v&apos;: 0.5431879162788391,
-     u&apos;tfidf&apos;: 0.41066858899272446,
-     u&apos;w2v&apos;: 0.5670056343078613},
-    u&apos;total_score&apos;: 0.5069540465264749},
-   u&apos;website&apos;: u&apos;blog.spaziodati.eu&apos;},
-  {u&apos;data&apos;: {u&apos;link&apos;: u&apos;http://visup.it&apos;,
-    u&apos;metadata&apos;: {u&apos;desc_tokens&apos;: 49,
-     u&apos;keywords_number&apos;: 11,
-     u&apos;text_tokens&apos;: 143},
-    u&apos;scores&apos;: {u&apos;d2v&apos;: 0.5794979333877563,
-     u&apos;tfidf&apos;: 0.6774262743855595,
-     u&apos;w2v&apos;: 0.30221549614249354},
-    u&apos;total_score&apos;: 0.5197132346386031},
-   u&apos;website&apos;: u&apos;visup.it&apos;}]}</pre>
-</div>
-
-</div>
-
-</div>
-</div>
-
 </div>
 <div class="cell border-box-sizing text_cell rendered">
 <div class="prompt input_prompt">
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>To retrieve the suggested companies for "Spaziodati Srl":</p>
+<p>To retrieve the <strong>suggested companies</strong> for `SPAZIODATI S.R.L':</p>
 
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[4]:</div>
+<div class="prompt input_prompt">In&nbsp;[2]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span class="n">company_par</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;company&#39;</span><span class="p">:</span> <span class="s">&#39;6da785b3adf2&#39;</span><span class="p">,</span>  <span class="c"># this has to be provided</span>
@@ -402,13 +330,17 @@ Since we use distances, the lower the score, the better.</p>
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[4]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[2]:</div>
 
 
 <div class="output_text output_subarea output_execute_result">
-<pre>{u&apos;input_company_metadata&apos;: {u&apos;SPAZIODATI S.R.L.&apos;: {u&apos;ateco_code&apos;: [u&apos;62.01&apos;,
+<pre>{u&apos;input_company_metadata&apos;: {u&apos;SPAZIODATI S.R.L.&apos;: {u&apos;ateco&apos;: [u&apos;62.01&apos;,
     u&quot;Produzione di software non connesso all&apos;edizione&quot;],
    u&apos;atoka_link&apos;: u&apos;https://atoka.io/azienda/-/6da785b3adf2/&apos;,
+   u&apos;locations&apos;: {u&apos;macroregion&apos;: [u&apos;Nord-est&apos;, u&apos;Centro&apos;],
+    u&apos;municipality&apos;: [u&apos;Trento&apos;, u&apos;Cascina&apos;],
+    u&apos;province&apos;: [u&apos;Trento&apos;, u&apos;Pisa&apos;],
+    u&apos;region&apos;: [u&apos;Trentino-Alto Adige/S\xfcdtirol&apos;, u&apos;Toscana&apos;]},
    u&apos;websites&apos;: {u&apos;blog.spaziodati.eu&apos;: {u&apos;link&apos;: u&apos;http://blog.spaziodati.eu&apos;,
      u&apos;metadata&apos;: {u&apos;desc_tokens&apos;: 16,
       u&apos;description&apos;: [u&apos;blog&apos;,
@@ -474,11 +406,15 @@ Since we use distances, the lower the score, the better.</p>
        u&apos;linked dat&apos;],
       u&apos;keywords_number&apos;: 5,
       u&apos;text_tokens&apos;: 1264}}}}},
- u&apos;output&apos;: [{u&apos;ateco_code&apos;: [u&apos;62.01&apos;,
+ u&apos;output&apos;: [{u&apos;ateco&apos;: [u&apos;62.01&apos;,
     u&quot;Produzione di software non connesso all&apos;edizione&quot;],
    u&apos;atoka_link&apos;: u&apos;https://atoka.io/azienda/-/d41595f15b96/&apos;,
    u&apos;company&apos;: u&apos;METREECA S.R.L.&apos;,
-   u&apos;company_total_score&apos;: 0.1665030433532826,
+   u&apos;company_total_score&apos;: 0.49950913005984776,
+   u&apos;location&apos;: {u&apos;macroregion&apos;: [u&apos;Nord-ovest&apos;],
+    u&apos;municipality&apos;: [u&apos;Milano&apos;, u&apos;San Donato Milanese&apos;],
+    u&apos;province&apos;: [u&apos;Milano&apos;],
+    u&apos;region&apos;: [u&apos;Lombardia&apos;]},
    u&apos;websites&apos;: {u&apos;www.metreeca.it&apos;: {u&apos;link&apos;: u&apos;http://www.metreeca.it&apos;,
      u&apos;metadata&apos;: {u&apos;desc_tokens&apos;: 72,
       u&apos;keywords_number&apos;: 10,
@@ -487,11 +423,15 @@ Since we use distances, the lower the score, the better.</p>
       u&apos;tfidf&apos;: 0.6568099085663842,
       u&apos;w2v&apos;: 0.3603660762310028},
      u&apos;total_score&apos;: 0.49950913005984776}}},
-  {u&apos;ateco_code&apos;: [u&apos;62.09.09&apos;,
+  {u&apos;ateco&apos;: [u&apos;62.09.09&apos;,
     u&quot;Altre attivit\xe0 dei servizi connessi alle tecnologie dell&apos;informatica nca&quot;],
    u&apos;atoka_link&apos;: u&apos;https://atoka.io/azienda/-/c0cfeccbd674/&apos;,
    u&apos;company&apos;: u&apos;TEIA TECHNOLOGIES S.R.L.&apos;,
-   u&apos;company_total_score&apos;: 0.16838242556447844,
+   u&apos;company_total_score&apos;: 0.5051472766934353,
+   u&apos;location&apos;: {u&apos;macroregion&apos;: [u&apos;Nord-ovest&apos;],
+    u&apos;municipality&apos;: [u&apos;Milano&apos;],
+    u&apos;province&apos;: [u&apos;Milano&apos;],
+    u&apos;region&apos;: [u&apos;Lombardia&apos;]},
    u&apos;websites&apos;: {u&apos;www.teiatechnologies.com&apos;: {u&apos;link&apos;: u&apos;http://www.teiatechnologies.com&apos;,
      u&apos;metadata&apos;: {u&apos;desc_tokens&apos;: 109,
       u&apos;keywords_number&apos;: 11,
@@ -500,18 +440,30 @@ Since we use distances, the lower the score, the better.</p>
       u&apos;tfidf&apos;: 0.689739793791324,
       u&apos;w2v&apos;: 0.38911592960357666},
      u&apos;total_score&apos;: 0.5051472766934353}}},
-  {u&apos;ateco_code&apos;: [u&apos;70.21&apos;, u&apos;Pubbliche relazioni e comunicazione&apos;],
-   u&apos;atoka_link&apos;: u&apos;https://atoka.io/azienda/-/f5dce7cf4464/&apos;,
-   u&apos;company&apos;: u&apos;BITBANG S.R.L.&apos;,
-   u&apos;company_total_score&apos;: 0.17041205286407468,
-   u&apos;websites&apos;: {u&apos;www.bitbang.com&apos;: {u&apos;link&apos;: u&apos;http://www.bitbang.com&apos;,
-     u&apos;metadata&apos;: {u&apos;desc_tokens&apos;: 246,
-      u&apos;keywords_number&apos;: 13,
-      u&apos;text_tokens&apos;: 1911},
-     u&apos;scores&apos;: {u&apos;d2v&apos;: 0.506264328956604,
-      u&apos;tfidf&apos;: 0.6560880767784117,
-      u&apos;w2v&apos;: 0.3713560700416565},
-     u&apos;total_score&apos;: 0.511236158592224}}}]}</pre>
+  {u&apos;ateco&apos;: [u&apos;62.01&apos;, u&quot;Produzione di software non connesso all&apos;edizione&quot;],
+   u&apos;atoka_link&apos;: u&apos;https://atoka.io/azienda/-/c7e4ae6df084/&apos;,
+   u&apos;company&apos;: u&apos;OXERO S.R.L.&apos;,
+   u&apos;company_total_score&apos;: 0.5087173589739167,
+   u&apos;location&apos;: {u&apos;macroregion&apos;: [u&apos;Sud&apos;, u&apos;Centro&apos;],
+    u&apos;municipality&apos;: [u&apos;Fasano&apos;, u&apos;Bari&apos;, u&apos;Roma&apos;],
+    u&apos;province&apos;: [u&apos;Brindisi&apos;, u&apos;Bari&apos;, u&apos;Roma&apos;],
+    u&apos;region&apos;: [u&apos;Puglia&apos;, u&apos;Lazio&apos;]},
+   u&apos;websites&apos;: {u&apos;www.oxero.com&apos;: {u&apos;link&apos;: u&apos;http://www.oxero.com&apos;,
+     u&apos;metadata&apos;: {u&apos;desc_tokens&apos;: 319,
+      u&apos;keywords_number&apos;: 12,
+      u&apos;text_tokens&apos;: 2036},
+     u&apos;scores&apos;: {u&apos;d2v&apos;: 0.4950385093688965,
+      u&apos;tfidf&apos;: 0.6925028865994166,
+      u&apos;w2v&apos;: 0.3402344787029506},
+     u&apos;total_score&apos;: 0.5092586248904212},
+    u&apos;www.oxero.it&apos;: {u&apos;link&apos;: u&apos;http://www.oxero.it&apos;,
+     u&apos;metadata&apos;: {u&apos;desc_tokens&apos;: 324,
+      u&apos;keywords_number&apos;: 12,
+      u&apos;text_tokens&apos;: 2039},
+     u&apos;scores&apos;: {u&apos;d2v&apos;: 0.4885890781879425,
+      u&apos;tfidf&apos;: 0.6927893212735582,
+      u&apos;w2v&apos;: 0.34314987971073563},
+     u&apos;total_score&apos;: 0.5081760930574121}}}]}</pre>
 </div>
 
 </div>
@@ -525,39 +477,14 @@ Since we use distances, the lower the score, the better.</p>
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p><h4> Parameters </h4>
-The parameters to provide are the following:</p>
-<ul>
-<li>websites or companies:<ul>
-<li><strong>website</strong>: it works with any websites that is both in idg (July snapshot) and atoka (July snapshot). Otherwise an error json is returned.</li>
-<li><strong>company</strong>: company parameters take into input the company id that is in atoka July snapshot.</li>
-</ul>
-</li>
-<li><strong>model</strong>: it can be chosen among: linear, simple_weighted, w2v, d2v, tfidf. They are explicited in <strong>models</strong> paragraph. <em>Default value: linear</em>.</li>
-<li><strong>num_max</strong>: number of maximum websites/companies returned. Every model is queried for its <strong>n/3</strong> most similar websites. If a suggested website is returned by more than one model, repetition are not shown. <em>Default value: 60</em></li>
-<li><strong>only_website</strong>: this has to be a boolean. Set to true to have just suggested websites url and total score, without websites metadata and partial scores (scores according to the different models). <em>Default value: False</em>.</li>
-</ul>
-<p>Only for companies:</p>
-<ul>
-<li><strong>ateco</strong>: it can be chosen among: <em>false</em>, <em>strict</em>, <em>distance</em>, <em>auto</em>. They are explicited in the <strong>ateco</strong> paragraph. <em>Default value: false</em></li>
-</ul>
-
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p>For example, to have output websites without their metadata and partial score:</p>
+<p>An useful parameter is <em>only_website</em>. To have shorter results set <em>only_websites=true</em></p>
 
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[5]:</div>
+<div class="prompt input_prompt">In&nbsp;[3]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span class="n">parameters</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;website&#39;</span><span class="p">:</span> <span class="s">&#39;www.spaziodati.eu&#39;</span><span class="p">,</span>
@@ -576,7 +503,7 @@ The parameters to provide are the following:</p>
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[5]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[3]:</div>
 
 
 <div class="output_text output_subarea output_execute_result">
@@ -615,48 +542,7 @@ The parameters to provide are the following:</p>
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p><h4> Metadata </h4>
-If <strong>only_website</strong> is not given or set to False, metadata are returned: those are the count of keywords or description/text tokens of a website that are found in the respective trained model. For example, a website may have 15 keywords, of which 12 are used in the word2vec model, so 12 is returned in the response, under <em>keywords_number</em>. <em>desc_dokens</em> is the number of tokens used in the doc2vec model, while <em>text_tokens</em> is the number of tokens used in the tfidf model.</p>
-
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p><h4> Models </h4>
-The model parameter for the total score is based on the following function:
- $$
- \begin{split}
- f(w_w, w_d, w_t, \mu_w, \mu_d, \mu_t, \nu_w, \nu_d, \nu_t) =&
- w_w * w2v(distance) * w2vmeta(input) ^ {\mu_w} * w2vmeta(output) ^ {\nu_w} + \\
- &
- w_d * d2v(distance) * d2vmeta(input) ^ {\mu_d} * d2vmeta(output) ^ {\nu_d} + \\
- &
- w_t * tfidf(distance) * tfidfmeta(input) ^ {\mu_t} * tfidfmeta(output) ^ {\nu_t}
- \end{split}
- $$</p>
-<p>where $w_i$ are weights,  $model(distance)$ is the distance between the input website and one of the suggested ones according to that model,  $modelmeta(in/out)$ is the number of keywords(w2v)/description tokens(d2v)/text tokens(tfidf) present in the input/output website. The model parameter is used in order to avoid to provide all the parameters that the function needs. The models use the following parameters:</p>
-<ul>
-<li><strong>linear</strong>: $f(1/3,1/3,1/3,0,0,0,0,0,0)$, i.e. a mean between distances, without considering the metadata.</li>
-<li><strong>simple_weighted</strong>: $f(1/3,1/3,1/3,1,1,1,1,1,1)$, i.e. a mean using also metadata.</li>
-<li><strong>weight_dist</strong>: as simple_weighted, but instead of $modelmeta(in/out)^\nu$, it uses $(1-modelmeta(in/out))^\nu$</li>
-<li><strong>w2v</strong>: $f(1,0,0,0,0,0,0,0,0)$, i.e. consider only word2vec model, without metadata.</li>
-<li><strong>d2v</strong>: $f(0,1,0,0,0,0,0,0,0)$, i.e. consider only doc2vec model, without metadata.</li>
-<li><strong>tfidf</strong>: $f(0,0,1,0,0,0,0,0,0)$, i.e. consider only tfidf model, without metadata.</li>
-</ul>
-
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p>For example, to have websites suggested by word2vec alone:</p>
+<p>As said before, <strong>list of websites</strong> can be provided:</p>
 
 </div>
 </div>
@@ -666,12 +552,11 @@ The model parameter for the total score is based on the following function:
 <div class="prompt input_prompt">In&nbsp;[6]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython2"><pre><span class="n">parameters</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;website&#39;</span><span class="p">:</span> <span class="s">&#39;www.spaziodati.eu&#39;</span><span class="p">,</span>
-              <span class="s">&#39;model&#39;</span><span class="p">:</span> <span class="s">&#39;w2v&#39;</span><span class="p">,</span>     <span class="c"># model changed to w2v: total score is computed using only w2v score</span>
+<div class=" highlight hl-ipython2"><pre><span class="n">parameters</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;website&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;www.spaziodati.eu&#39;</span><span class="p">,</span> <span class="s">&#39;spaziodati.eu&#39;</span><span class="p">],</span>
               <span class="s">&#39;num_max&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
-              <span class="s">&#39;only_website&#39;</span><span class="p">:</span> <span class="s">&#39;false&#39;</span><span class="p">}</span>
-
-<span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">api_url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">parameters</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s">&#39;output&#39;</span><span class="p">]</span>
+              <span class="s">&#39;model&#39;</span><span class="p">:</span> <span class="s">&#39;linear&#39;</span><span class="p">,</span>
+              <span class="s">&#39;only_website&#39;</span><span class="p">:</span> <span class="s">&#39;true&#39;</span><span class="p">}</span>
+<span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">api_url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">parameters</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
 </pre></div>
 
 </div>
@@ -686,73 +571,8 @@ The model parameter for the total score is based on the following function:
 
 
 <div class="output_text output_subarea output_execute_result">
-<pre>[{u&apos;data&apos;: {u&apos;link&apos;: u&apos;http://spaziodati.eu&apos;,
+<pre>{u&apos;input_website_metadata&apos;: {u&apos;spaziodati.eu&apos;: {u&apos;link&apos;: u&apos;http://spaziodati.eu&apos;,
    u&apos;metadata&apos;: {u&apos;desc_tokens&apos;: 9,
-    u&apos;keywords_number&apos;: 5,
-    u&apos;text_tokens&apos;: 1264},
-   u&apos;scores&apos;: {u&apos;d2v&apos;: 0.21513806283473969,
-    u&apos;tfidf&apos;: 0.11228013806916579,
-    u&apos;w2v&apos;: 0.0},
-   u&apos;total_score&apos;: 0.0},
-  u&apos;website&apos;: u&apos;spaziodati.eu&apos;},
- {u&apos;data&apos;: {u&apos;link&apos;: u&apos;http://visup.it&apos;,
-   u&apos;metadata&apos;: {u&apos;desc_tokens&apos;: 49,
-    u&apos;keywords_number&apos;: 11,
-    u&apos;text_tokens&apos;: 143},
-   u&apos;scores&apos;: {u&apos;d2v&apos;: 0.5794979333877563,
-    u&apos;tfidf&apos;: 0.6774262743855595,
-    u&apos;w2v&apos;: 0.30221549614249354},
-   u&apos;total_score&apos;: 0.30221549614249354},
-  u&apos;website&apos;: u&apos;visup.it&apos;},
- {u&apos;data&apos;: {u&apos;link&apos;: u&apos;http://onenetlab.com&apos;,
-   u&apos;metadata&apos;: {u&apos;desc_tokens&apos;: 24,
-    u&apos;keywords_number&apos;: 13,
-    u&apos;text_tokens&apos;: 282},
-   u&apos;scores&apos;: {u&apos;d2v&apos;: 0.6621061563491821,
-    u&apos;tfidf&apos;: 0.68029912193168,
-    u&apos;w2v&apos;: 0.32768639294503005},
-   u&apos;total_score&apos;: 0.32768639294503005},
-  u&apos;website&apos;: u&apos;onenetlab.com&apos;}]</pre>
-</div>
-
-</div>
-
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p>It is possible to query also a list of websites:</p>
-
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[36]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython2"><pre><span class="n">parameters</span><span class="p">[</span><span class="s">&#39;website&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;www.spaziodati.eu&#39;</span><span class="p">,</span> <span class="s">&#39;spaziodati.eu&#39;</span><span class="p">]</span>
-<span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">api_url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">parameters</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-</pre></div>
-
-</div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area"><div class="prompt output_prompt">Out[36]:</div>
-
-
-<div class="output_text output_subarea output_execute_result">
-<pre>{u&apos;input_website_metadata&apos;: {u&apos;spaziodati.eu&apos;: {u&apos;metadata&apos;: {u&apos;desc_tokens&apos;: 9,
     u&apos;description&apos;: [u&apos;help&apos;,
      u&apos;organizations&apos;,
      u&apos;exploit&apos;,
@@ -765,7 +585,8 @@ The model parameter for the total score is based on the following function:
     u&apos;keywords&apos;: [u&apos;open dat&apos;, u&apos;graph&apos;, u&apos;developer&apos;, u&apos;dat&apos;, u&apos;linked dat&apos;],
     u&apos;keywords_number&apos;: 5,
     u&apos;text_tokens&apos;: 1264}},
-  u&apos;www.spaziodati.eu&apos;: {u&apos;metadata&apos;: {u&apos;desc_tokens&apos;: 9,
+  u&apos;www.spaziodati.eu&apos;: {u&apos;link&apos;: u&apos;http://www.spaziodati.eu&apos;,
+   u&apos;metadata&apos;: {u&apos;desc_tokens&apos;: 9,
     u&apos;description&apos;: [u&apos;help&apos;,
      u&apos;organizations&apos;,
      u&apos;exploit&apos;,
@@ -778,30 +599,14 @@ The model parameter for the total score is based on the following function:
     u&apos;keywords&apos;: [u&apos;open dat&apos;, u&apos;graph&apos;, u&apos;developer&apos;, u&apos;dat&apos;, u&apos;linked dat&apos;],
     u&apos;keywords_number&apos;: 5,
     u&apos;text_tokens&apos;: 1264}}},
- u&apos;output&apos;: [{u&apos;data&apos;: {u&apos;metadata&apos;: {u&apos;desc_tokens&apos;: 49,
-     u&apos;keywords_number&apos;: 11,
-     u&apos;text_tokens&apos;: 143},
-    u&apos;scores&apos;: {u&apos;d2v&apos;: 0.5722731351852417,
-     u&apos;tfidf&apos;: 0.6754158227701774,
-     u&apos;w2v&apos;: 0.30221547951282607},
-    u&apos;total_score&apos;: 0.30221547951282607},
+ u&apos;output&apos;: [{u&apos;data&apos;: {u&apos;link&apos;: u&apos;http://blog.spaziodati.eu&apos;,
+    u&apos;total_score&apos;: 0.5113834609127784},
+   u&apos;website&apos;: u&apos;blog.spaziodati.eu&apos;},
+  {u&apos;data&apos;: {u&apos;link&apos;: u&apos;http://visup.it&apos;, u&apos;total_score&apos;: 0.5166347981644226},
    u&apos;website&apos;: u&apos;visup.it&apos;},
-  {u&apos;data&apos;: {u&apos;metadata&apos;: {u&apos;desc_tokens&apos;: 24,
-     u&apos;keywords_number&apos;: 13,
-     u&apos;text_tokens&apos;: 282},
-    u&apos;scores&apos;: {u&apos;d2v&apos;: 0.6548613905906677,
-     u&apos;tfidf&apos;: 0.6785133841170583,
-     u&apos;w2v&apos;: 0.32768637494624187},
-    u&apos;total_score&apos;: 0.32768637494624187},
-   u&apos;website&apos;: u&apos;onenetlab.com&apos;},
-  {u&apos;data&apos;: {u&apos;metadata&apos;: {u&apos;desc_tokens&apos;: 14,
-     u&apos;keywords_number&apos;: 6,
-     u&apos;text_tokens&apos;: 81},
-    u&apos;scores&apos;: {u&apos;d2v&apos;: 0.6130142211914062,
-     u&apos;tfidf&apos;: 0.6985460992896095,
-     u&apos;w2v&apos;: 0.32774058564881253},
-    u&apos;total_score&apos;: 0.32774058564881253},
-   u&apos;website&apos;: u&apos;www.seesaw.it&apos;}]}</pre>
+  {u&apos;data&apos;: {u&apos;link&apos;: u&apos;http://www.metreeca.it&apos;,
+    u&apos;total_score&apos;: 0.5264066698374135},
+   u&apos;website&apos;: u&apos;www.metreeca.it&apos;}]}</pre>
 </div>
 
 </div>
@@ -815,14 +620,14 @@ The model parameter for the total score is based on the following function:
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>And at the same way it is possible to query for a list of companies:</p>
+<p>A <strong>list of companies</strong> can also be provided:</p>
 
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[11]:</div>
+<div class="prompt input_prompt">In&nbsp;[7]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span class="n">company_par</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;company&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;6da785b3adf2&#39;</span><span class="p">,</span> <span class="s">&#39;20533a607faf&#39;</span><span class="p">],</span>
@@ -840,13 +645,17 @@ The model parameter for the total score is based on the following function:
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[11]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[7]:</div>
 
 
 <div class="output_text output_subarea output_execute_result">
-<pre>{u&apos;input_company_metadata&apos;: {u&apos;SPAZIODATI S.R.L.&apos;: {u&apos;ateco_code&apos;: [u&apos;62.01&apos;,
+<pre>{u&apos;input_company_metadata&apos;: {u&apos;SPAZIODATI S.R.L.&apos;: {u&apos;ateco&apos;: [u&apos;62.01&apos;,
     u&quot;Produzione di software non connesso all&apos;edizione&quot;],
    u&apos;atoka_link&apos;: u&apos;https://atoka.io/azienda/-/6da785b3adf2/&apos;,
+   u&apos;locations&apos;: {u&apos;macroregion&apos;: [u&apos;Nord-est&apos;, u&apos;Centro&apos;],
+    u&apos;municipality&apos;: [u&apos;Trento&apos;, u&apos;Cascina&apos;],
+    u&apos;province&apos;: [u&apos;Trento&apos;, u&apos;Pisa&apos;],
+    u&apos;region&apos;: [u&apos;Trentino-Alto Adige/S\xfcdtirol&apos;, u&apos;Toscana&apos;]},
    u&apos;websites&apos;: {u&apos;blog.spaziodati.eu&apos;: {u&apos;link&apos;: u&apos;http://blog.spaziodati.eu&apos;,
      u&apos;metadata&apos;: {u&apos;desc_tokens&apos;: 16,
       u&apos;description&apos;: [u&apos;blog&apos;,
@@ -912,9 +721,13 @@ The model parameter for the total score is based on the following function:
        u&apos;linked dat&apos;],
       u&apos;keywords_number&apos;: 5,
       u&apos;text_tokens&apos;: 1264}}}},
-  u&apos;YONDER S.R.L.&apos;: {u&apos;ateco_code&apos;: [u&apos;72.1&apos;,
+  u&apos;YONDER S.R.L.&apos;: {u&apos;ateco&apos;: [u&apos;72.1&apos;,
     u&quot;RICERCA E SVILUPPO SPERIMENTALE NEL CAMPO DELLE SCIENZE NATURALI E DELL&apos;INGEGNERIA&quot;],
    u&apos;atoka_link&apos;: u&apos;https://atoka.io/azienda/-/20533a607faf/&apos;,
+   u&apos;locations&apos;: {u&apos;macroregion&apos;: [u&apos;Nord-est&apos;],
+    u&apos;municipality&apos;: [u&apos;Trento&apos;],
+    u&apos;province&apos;: [u&apos;Trento&apos;],
+    u&apos;region&apos;: [u&apos;Trentino-Alto Adige/S\xfcdtirol&apos;]},
    u&apos;websites&apos;: {u&apos;yonderlabs.com&apos;: {u&apos;link&apos;: u&apos;http://yonderlabs.com&apos;,
      u&apos;metadata&apos;: {u&apos;desc_tokens&apos;: 3,
       u&apos;description&apos;: [u&apos;dat&apos;, u&apos;scienc&apos;, u&apos;company&apos;],
@@ -924,11 +737,15 @@ The model parameter for the total score is based on the following function:
        u&apos;onlin reputation&apos;],
       u&apos;keywords_number&apos;: 4,
       u&apos;text_tokens&apos;: 758}}}}},
- u&apos;output&apos;: [{u&apos;ateco_code&apos;: [u&apos;62.01&apos;,
+ u&apos;output&apos;: [{u&apos;ateco&apos;: [u&apos;62.01&apos;,
     u&quot;Produzione di software non connesso all&apos;edizione&quot;],
    u&apos;atoka_link&apos;: u&apos;https://atoka.io/azienda/-/d41595f15b96/&apos;,
    u&apos;company&apos;: u&apos;METREECA S.R.L.&apos;,
-   u&apos;company_total_score&apos;: 0.16461359421509675,
+   u&apos;company_total_score&apos;: 0.49384078264529024,
+   u&apos;location&apos;: {u&apos;macroregion&apos;: [u&apos;Nord-ovest&apos;],
+    u&apos;municipality&apos;: [u&apos;Milano&apos;, u&apos;San Donato Milanese&apos;],
+    u&apos;province&apos;: [u&apos;Milano&apos;],
+    u&apos;region&apos;: [u&apos;Lombardia&apos;]},
    u&apos;websites&apos;: {u&apos;www.metreeca.it&apos;: {u&apos;link&apos;: u&apos;http://www.metreeca.it&apos;,
      u&apos;metadata&apos;: {u&apos;desc_tokens&apos;: 72,
       u&apos;keywords_number&apos;: 10,
@@ -937,10 +754,14 @@ The model parameter for the total score is based on the following function:
       u&apos;tfidf&apos;: 0.652916308650211,
       u&apos;w2v&apos;: 0.34065282344818115},
      u&apos;total_score&apos;: 0.49384078264529024}}},
-  {u&apos;ateco_code&apos;: [u&apos;70.21&apos;, u&apos;Pubbliche relazioni e comunicazione&apos;],
+  {u&apos;ateco&apos;: [u&apos;70.21&apos;, u&apos;Pubbliche relazioni e comunicazione&apos;],
    u&apos;atoka_link&apos;: u&apos;https://atoka.io/azienda/-/f5dce7cf4464/&apos;,
    u&apos;company&apos;: u&apos;BITBANG S.R.L.&apos;,
-   u&apos;company_total_score&apos;: 0.1674185198622642,
+   u&apos;company_total_score&apos;: 0.5022555595867926,
+   u&apos;location&apos;: {u&apos;macroregion&apos;: [u&apos;Nord-est&apos;],
+    u&apos;municipality&apos;: [u&apos;Bologna&apos;],
+    u&apos;province&apos;: [u&apos;Bologna&apos;],
+    u&apos;region&apos;: [u&apos;Emilia-Romagna&apos;]},
    u&apos;websites&apos;: {u&apos;www.bitbang.com&apos;: {u&apos;link&apos;: u&apos;http://www.bitbang.com&apos;,
      u&apos;metadata&apos;: {u&apos;desc_tokens&apos;: 246,
       u&apos;keywords_number&apos;: 13,
@@ -949,19 +770,30 @@ The model parameter for the total score is based on the following function:
       u&apos;tfidf&apos;: 0.6494303364256303,
       u&apos;w2v&apos;: 0.3544732332229614},
      u&apos;total_score&apos;: 0.5022555595867926}}},
-  {u&apos;ateco_code&apos;: [u&apos;46.51&apos;,
-    u&quot;Commercio all&apos;ingrosso di computer, apparecchiature informatiche periferiche e di software&quot;],
-   u&apos;atoka_link&apos;: u&apos;https://atoka.io/azienda/-/abf2435653e4/&apos;,
-   u&apos;company&apos;: u&quot;KAD SYSTEMS SOCIETA&apos; A RESPONSABILITA&apos; LIMITATA&quot;,
-   u&apos;company_total_score&apos;: 0.1716745358492079,
-   u&apos;websites&apos;: {u&apos;www.kadsystems.com&apos;: {u&apos;link&apos;: u&apos;http://www.kadsystems.com&apos;,
-     u&apos;metadata&apos;: {u&apos;desc_tokens&apos;: 206,
-      u&apos;keywords_number&apos;: 8,
-      u&apos;text_tokens&apos;: 1479},
-     u&apos;scores&apos;: {u&apos;d2v&apos;: 0.4643751715843325,
-      u&apos;tfidf&apos;: 0.6733387033980924,
-      u&apos;w2v&apos;: 0.40735694766044617},
-     u&apos;total_score&apos;: 0.5150236075476237}}}]}</pre>
+  {u&apos;ateco&apos;: [u&apos;62.01&apos;, u&quot;Produzione di software non connesso all&apos;edizione&quot;],
+   u&apos;atoka_link&apos;: u&apos;https://atoka.io/azienda/-/c7e4ae6df084/&apos;,
+   u&apos;company&apos;: u&apos;OXERO S.R.L.&apos;,
+   u&apos;company_total_score&apos;: 0.5149745016585262,
+   u&apos;location&apos;: {u&apos;macroregion&apos;: [u&apos;Sud&apos;, u&apos;Centro&apos;],
+    u&apos;municipality&apos;: [u&apos;Fasano&apos;, u&apos;Bari&apos;, u&apos;Roma&apos;],
+    u&apos;province&apos;: [u&apos;Brindisi&apos;, u&apos;Bari&apos;, u&apos;Roma&apos;],
+    u&apos;region&apos;: [u&apos;Puglia&apos;, u&apos;Lazio&apos;]},
+   u&apos;websites&apos;: {u&apos;www.oxero.com&apos;: {u&apos;link&apos;: u&apos;http://www.oxero.com&apos;,
+     u&apos;metadata&apos;: {u&apos;desc_tokens&apos;: 319,
+      u&apos;keywords_number&apos;: 12,
+      u&apos;text_tokens&apos;: 2036},
+     u&apos;scores&apos;: {u&apos;d2v&apos;: 0.5083187818527222,
+      u&apos;tfidf&apos;: 0.6911901062310488,
+      u&apos;w2v&apos;: 0.348354935759785},
+     u&apos;total_score&apos;: 0.515954607947852},
+    u&apos;www.oxero.it&apos;: {u&apos;link&apos;: u&apos;http://www.oxero.it&apos;,
+     u&apos;metadata&apos;: {u&apos;desc_tokens&apos;: 324,
+      u&apos;keywords_number&apos;: 12,
+      u&apos;text_tokens&apos;: 2039},
+     u&apos;scores&apos;: {u&apos;d2v&apos;: 0.500516414642334,
+      u&apos;tfidf&apos;: 0.6914828618467733,
+      u&apos;w2v&apos;: 0.34998390961849396},
+     u&apos;total_score&apos;: 0.5139943953692004}}}]}</pre>
 </div>
 
 </div>
@@ -975,7 +807,7 @@ The model parameter for the total score is based on the following function:
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h4> Ateco filter </h4>
+<h4> Errors </h4>
 </div>
 </div>
 </div>
@@ -984,28 +816,20 @@ The model parameter for the total score is based on the following function:
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>When query for company similarity, it is possible to filter the results using the information on their ateco code. To filter them add in the query the parameter <strong>ateco</strong>, equal to one of the following:</p>
-<ul>
-<li><em>false</em>, default value, it doesn't apply any filter</li>
-<li><em>strict</em>: the companies suggested are such that they have ateco code equal to at least one of the ateco codes of the companies in input</li>
-<li><em>distance</em>: the companies suggested are such that their ateco code is distant less or equal 5(can be changed adding <em>ateco_dist</em>) from at least one ateco code of the companies in input. Distance is here intended as the <em>shortest-path</em> using the ateco tree as a graph</li>
-<li><em>auto</em>: frequency of the ateco codes of the input companies and the suggested companies without filter is computed. Then the companies kept in the final suggested list are the ones with ateco codes that are more frequent ($ \{q \in S | f(q)>0.25 *max_{q_i}(f(q_i))\}$, where $S$ is the set of ateco codes $q$ present in the output companies list, $f(q)$ is the frequence of $q$)</li>
-</ul>
+<p>One between <strong>website</strong> and <strong>company</strong> parameters has to be provided:</p>
 
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[10]:</div>
+<div class="prompt input_prompt">In&nbsp;[14]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython2"><pre><span class="n">company_par</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;company&#39;</span><span class="p">:</span> <span class="s">&#39;6da785b3adf2&#39;</span><span class="p">,</span>  <span class="c"># this has to be provided</span>
-               <span class="s">&#39;model&#39;</span><span class="p">:</span> <span class="s">&#39;linear&#39;</span><span class="p">,</span>
-               <span class="s">&#39;num_max&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
-               <span class="s">&#39;only_website&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
-               <span class="s">&#39;ateco&#39;</span><span class="p">:</span> <span class="s">&#39;strict&#39;</span><span class="p">}</span>
-<span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">api_url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">company_par</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s">&#39;output&#39;</span><span class="p">]</span>
+<div class=" highlight hl-ipython2"><pre><span class="n">parameters</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;num_max&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+              <span class="s">&#39;only_website&#39;</span><span class="p">:</span> <span class="s">&#39;false&#39;</span><span class="p">}</span>
+
+<span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">api_url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">parameters</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
 </pre></div>
 
 </div>
@@ -1016,49 +840,11 @@ The model parameter for the total score is based on the following function:
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[10]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[14]:</div>
 
 
 <div class="output_text output_subarea output_execute_result">
-<pre>[{u&apos;ateco_code&apos;: [u&apos;62.01&apos;,
-   u&quot;Produzione di software non connesso all&apos;edizione&quot;],
-  u&apos;atoka_link&apos;: u&apos;https://atoka.io/azienda/-/d41595f15b96/&apos;,
-  u&apos;company&apos;: u&apos;METREECA S.R.L.&apos;,
-  u&apos;company_total_score&apos;: 0.1665030433532826,
-  u&apos;websites&apos;: {u&apos;www.metreeca.it&apos;: {u&apos;link&apos;: u&apos;http://www.metreeca.it&apos;,
-    u&apos;metadata&apos;: {u&apos;desc_tokens&apos;: 72,
-     u&apos;keywords_number&apos;: 10,
-     u&apos;text_tokens&apos;: 348},
-    u&apos;scores&apos;: {u&apos;d2v&apos;: 0.48135140538215637,
-     u&apos;tfidf&apos;: 0.6568099085663842,
-     u&apos;w2v&apos;: 0.3603660762310028},
-    u&apos;total_score&apos;: 0.49950913005984776}}},
- {u&apos;ateco_code&apos;: [u&apos;62.01&apos;,
-   u&quot;Produzione di software non connesso all&apos;edizione&quot;],
-  u&apos;atoka_link&apos;: u&apos;https://atoka.io/azienda/-/7d5e6cc25c73/&apos;,
-  u&apos;company&apos;: u&apos;VISUP S.R.L.&apos;,
-  u&apos;company_total_score&apos;: 0.17516024599887595,
-  u&apos;websites&apos;: {u&apos;visup.it&apos;: {u&apos;link&apos;: u&apos;http://visup.it&apos;,
-    u&apos;metadata&apos;: {u&apos;desc_tokens&apos;: 49,
-     u&apos;keywords_number&apos;: 11,
-     u&apos;text_tokens&apos;: 143},
-    u&apos;scores&apos;: {u&apos;d2v&apos;: 0.5511715412139893,
-     u&apos;tfidf&apos;: 0.6799655507930857,
-     u&apos;w2v&apos;: 0.34530512198280866},
-    u&apos;total_score&apos;: 0.5254807379966279}}},
- {u&apos;ateco_code&apos;: [u&apos;62.01&apos;,
-   u&quot;Produzione di software non connesso all&apos;edizione&quot;],
-  u&apos;atoka_link&apos;: u&apos;https://atoka.io/azienda/-/34b47e68e2fb/&apos;,
-  u&apos;company&apos;: u&apos;FACTORY SOFTWARE S.R.L.&apos;,
-  u&apos;company_total_score&apos;: 0.17601332981518744,
-  u&apos;websites&apos;: {u&apos;www.bifactory.it&apos;: {u&apos;link&apos;: u&apos;http://www.bifactory.it&apos;,
-    u&apos;metadata&apos;: {u&apos;desc_tokens&apos;: 99,
-     u&apos;keywords_number&apos;: 11,
-     u&apos;text_tokens&apos;: 1003},
-    u&apos;scores&apos;: {u&apos;d2v&apos;: 0.5459758043289185,
-     u&apos;tfidf&apos;: 0.6933013454844192,
-     u&apos;w2v&apos;: 0.3448428185233492},
-    u&apos;total_score&apos;: 0.5280399894455623}}}]</pre>
+<pre>{u&apos;error&apos;: u&quot;parameter &apos;website&apos; or &apos;company&apos; is missing&quot;}</pre>
 </div>
 
 </div>
@@ -1072,33 +858,14 @@ The model parameter for the total score is based on the following function:
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>Notice how TEIA TECHNOLOGIES S.R.L. and BITBANG S.R.L. do not appear anymore, since they have not the same ateco of SPAZIODATI S.R.L.</p>
-
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<h3> Errors </h3>
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p>If one (or more, but not all) the input websites is not present in the models, the suggestion is computed using the websites that are present, and metadata of uncorrect website is substituted by "model not present in the model".</p>
+<p>If one (or more, but not all) the input websites is not present in the models, the suggestion is computed using the websites that are present, and metadata of <strong>uncorrect website</strong> is substituted by "model not present in the model".</p>
 
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[37]:</div>
+<div class="prompt input_prompt">In&nbsp;[8]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span class="n">parameters</span><span class="p">[</span><span class="s">&#39;website&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;www.spaziodati.eu&#39;</span><span class="p">,</span> <span class="s">&#39;spaziti.eu&#39;</span><span class="p">]</span>
@@ -1113,12 +880,13 @@ The model parameter for the total score is based on the following function:
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[37]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[8]:</div>
 
 
 <div class="output_text output_subarea output_execute_result">
 <pre>{u&apos;spaziti.eu&apos;: u&apos;website not present in the models&apos;,
- u&apos;www.spaziodati.eu&apos;: {u&apos;metadata&apos;: {u&apos;desc_tokens&apos;: 9,
+ u&apos;www.spaziodati.eu&apos;: {u&apos;link&apos;: u&apos;http://www.spaziodati.eu&apos;,
+  u&apos;metadata&apos;: {u&apos;desc_tokens&apos;: 9,
    u&apos;description&apos;: [u&apos;help&apos;,
     u&apos;organizations&apos;,
     u&apos;exploit&apos;,
@@ -1144,14 +912,14 @@ The model parameter for the total score is based on the following function:
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>At the same way, if just some companies are correct, the suggestion is computed using the websites that are present, and metadata are substituted with "company not found".</p>
+<p>At the same way, if some of the <strong>companies are uncorrect</strong>, the suggestion is computed using the websites of the correct companies, and metadata are substituted with "company not found".</p>
 
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[16]:</div>
+<div class="prompt input_prompt">In&nbsp;[9]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span class="n">company_par</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;company&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;6da785b3adf&#39;</span><span class="p">,</span> <span class="s">&#39;20533a607faf&#39;</span><span class="p">],</span>
@@ -1169,14 +937,18 @@ The model parameter for the total score is based on the following function:
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[16]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[9]:</div>
 
 
 <div class="output_text output_subarea output_execute_result">
 <pre>{u&apos;6da785b3adf&apos;: u&apos;company not found&apos;,
- u&apos;YONDER S.R.L.&apos;: {u&apos;ateco_code&apos;: [u&apos;72.1&apos;,
+ u&apos;YONDER S.R.L.&apos;: {u&apos;ateco&apos;: [u&apos;72.1&apos;,
    u&quot;RICERCA E SVILUPPO SPERIMENTALE NEL CAMPO DELLE SCIENZE NATURALI E DELL&apos;INGEGNERIA&quot;],
   u&apos;atoka_link&apos;: u&apos;https://atoka.io/azienda/-/20533a607faf/&apos;,
+  u&apos;locations&apos;: {u&apos;macroregion&apos;: [u&apos;Nord-est&apos;],
+   u&apos;municipality&apos;: [u&apos;Trento&apos;],
+   u&apos;province&apos;: [u&apos;Trento&apos;],
+   u&apos;region&apos;: [u&apos;Trentino-Alto Adige/S\xfcdtirol&apos;]},
   u&apos;websites&apos;: {u&apos;yonderlabs.com&apos;: {u&apos;link&apos;: u&apos;http://yonderlabs.com&apos;,
     u&apos;metadata&apos;: {u&apos;desc_tokens&apos;: 3,
      u&apos;description&apos;: [u&apos;dat&apos;, u&apos;scienc&apos;, u&apos;company&apos;],
@@ -1199,17 +971,17 @@ The model parameter for the total score is based on the following function:
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>If all the input websites are not present in the model, the follwoing json is returned:</p>
+<p>I all the websites in input are <strong>not present in the models</strong>, a simple error is returned:</p>
 
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[17]:</div>
+<div class="prompt input_prompt">In&nbsp;[11]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython2"><pre><span class="n">parameters</span><span class="p">[</span><span class="s">&#39;website&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;aaa&#39;</span><span class="p">,</span> <span class="s">&#39;bbb&#39;</span><span class="p">]</span>
+<div class=" highlight hl-ipython2"><pre><span class="n">parameters</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;website&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;aaa&#39;</span><span class="p">,</span> <span class="s">&#39;bbb&#39;</span><span class="p">]}</span>
 <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">api_url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">parameters</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
 </pre></div>
 
@@ -1221,7 +993,7 @@ The model parameter for the total score is based on the following function:
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[17]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[11]:</div>
 
 
 <div class="output_text output_subarea output_execute_result">
@@ -1246,10 +1018,10 @@ The model parameter for the total score is based on the following function:
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[18]:</div>
+<div class="prompt input_prompt">In&nbsp;[12]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython2"><pre><span class="n">company_par</span><span class="p">[</span><span class="s">&#39;company&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;6da785b3adf&#39;</span><span class="p">,</span> <span class="s">&#39;20533a607fa&#39;</span><span class="p">]</span>
+<div class=" highlight hl-ipython2"><pre><span class="n">company_par</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;company&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;6da785b3adf&#39;</span><span class="p">,</span> <span class="s">&#39;20533a607fa&#39;</span><span class="p">]}</span>
 <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">api_url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">company_par</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
 </pre></div>
 
@@ -1261,7 +1033,7 @@ The model parameter for the total score is based on the following function:
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[18]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[12]:</div>
 
 
 <div class="output_text output_subarea output_execute_result">
@@ -1279,14 +1051,14 @@ The model parameter for the total score is based on the following function:
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>If a parameter is mispelled, a json with what should be written is returned:</p>
+<p>If one ore more parameter is <strong>mispelled</strong>, an error with what should be written is returned:</p>
 
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[19]:</div>
+<div class="prompt input_prompt">In&nbsp;[13]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span class="n">parameters</span><span class="p">[</span><span class="s">&#39;mdl&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;www.spaziodati.eu&#39;</span><span class="p">]</span>
@@ -1301,12 +1073,12 @@ The model parameter for the total score is based on the following function:
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[19]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[13]:</div>
 
 
 <div class="output_text output_subarea output_execute_result">
 <pre>{u&apos;error&apos;: u&apos;wrong parameter(s) in input&apos;,
- u&apos;expected&apos;: {u&apos;companies&apos;: u&quot;.../suggest?company=atoka_company_id[&amp;model=(default=&apos;linear)&apos;&amp;num_max=(default=60)&amp;only_website=(default=False)&amp;ateco=(false)]&quot;,
+ u&apos;expected&apos;: {u&apos;companies&apos;: u&quot;.../suggest?company=atoka_company_id[&amp;model=(default=&apos;linear)&apos;&amp;num_max=(default=60)&amp;only_website=(default=False)&amp;location=(false)&amp;ateco=(false)]&quot;,
   u&apos;websites&apos;: u&quot;.../suggest?website=a_website[&amp;model=(default=&apos;linear)&apos;&amp;num_max=(default=60)&amp;only_website=(default=False)]&quot;}}</pre>
 </div>
 
@@ -1321,13 +1093,13 @@ The model parameter for the total score is based on the following function:
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>Other errors are returned in the case that:</p>
+<p>For <strong>models</strong>, <strong>ateco</strong> and <strong>location</strong> error refer to their documentation. Other errors are returned in the case that:</p>
 <ul>
-<li><em>website</em> nor <em>company</em> parameter is not given</li>
 <li>a <em>model</em> not present in the set {'linear', 'simply_weighted', 'weight_dist', 'w2v', 'd2v', 'tfidf'}</li>
-<li><em>num_max</em> parameter is different than an integer (or a string that can be transformed into an integer)</li>
+<li><em>num_max</em> parameter is different than an integer (or different than a string that can be transformed into an integer)</li>
 <li><em>only_website</em> parameter is not in the list: ['true', 'True', 't', 'T', '1', 'false', 'False', 'f', 'F', '0']</li>
 <li><em>ateco</em> not present in the set {'false', 'auto', 'strict', 'distance'}</li>
+<li><em>location</em> not present in the set {'false', 'municipality', 'province', 'region', 'macroregion'}</li>
 </ul>
 
 </div>
