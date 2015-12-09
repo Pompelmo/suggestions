@@ -46,7 +46,8 @@ def suggestions():
     # check for correctness of the query
     # ------------------------------------------------------
     # check if there are no mispellings or different parameters (accepted_input=list of parameters used)
-    accepted_input = ['website', 'model', 'num_max', 'only_website', 'company', 'location', 'ateco', 'ateco_dist']
+    accepted_input = ['website', 'model', 'num_max', 'only_website', 'company', 'location',
+                      'ateco', 'ateco_dist', 'size']
 
     for key in parameters.keys():           # check if every query parameter is correct
         if key not in accepted_input:       # or return an error (in json form)
@@ -74,8 +75,8 @@ def suggestions():
     try:
         sf.parameters_choice(model)         # set some value for the computation of the total_score
     except KeyError:
-        response.body = json.dumps({"error": "wrong model in input, try: 'linear', 'simply_weighted', "
-                                             "'weight_dist', 'w2v', 'd2v' or 'tfidf"})
+        response.body = json.dumps({"error": "wrong model in input",
+                                    "epected": "'linear', 'simply_weighted', 'weight_dist', 'w2v', 'd2v' or 'tfidf"})
         return response     # return error if last model given is wrong
 
     # check if num_max parameter is provided and it is an integer (otherwise set default or return an error)
@@ -83,7 +84,8 @@ def suggestions():
         try:        # check if it's an integer
             num = int(parameters['num_max']) / 3            # top "num" websites retrieved for model
         except ValueError:
-            response.body = json.dumps({"error": "expected an integer in the 'num_max' field"})
+            response.body = json.dumps({"error": "wrong input for 'num_max' field",
+                                        "expected": "an integer"})
             return response
     else:
         num = 20
@@ -99,48 +101,29 @@ def suggestions():
     # check if 'only_website' parameters is present or set it to false
     if 'only_website' in parameters.keys():
         # check if 'only_website' parameters have a format that can be read as true/false
-        try:
-            only_website = boolean(parameters['only_website'])
-        except KeyError:                                            # or wrong input...
-            response.body = json.dumps({"error": "wrong input on only_website: try 't', 'T', 'true', "
-                                        "'True' or '1' to eliminate metadata"})
+        if parameters['only_website'] == 'true':
+            only_website = True
+        elif parameters['only_website'] == 'false':
+            only_website = False
+        else:  # or wrong input...
+            response.body = json.dumps({"error": "wrong only_website in input",
+                                        "expected": " 'true' or 'false'"})
             return response
     # set to false if not found
     else:
         only_website = False                    # if nothing is provided, we want metadata!!!
 
-    # --------------------------------------------------------------------------------------------
-    # check necessary parameters or set default. also, if company, check for ateco and location
-    # --------------------------------------------------------------------------------------------
-    # check if company or website value is provided or return an error
+    # ------------------------------------------------------------------------------------------------
+    # check necessary parameters or set default. also, if company, check for ateco, location and size
+    # ------------------------------------------------------------------------------------------------
+
+    # ----------------------------------------
+    # check if company is provided
     if 'company' in parameters.keys():
         companies = parameters.getall('company')        # get all the &company= in the query  (getall returns a list)
         ateco_dist = 5          # set default, if it found, it is rewritten
 
-        # if company, check if also ateco is present (or it is completely ignored if company is not present)
-        if 'ateco' in parameters.keys():
-            # check if it is given one of the possible ateco
-            ateco_par = ['strict', 'distance', 'auto', 'false']
-
-            if parameters['ateco'] in ateco_par:
-                ateco = parameters['ateco']
-
-                if ateco == 'distance' and 'ateco_dist' in parameters.keys():
-                    # if ateco == distance, ateco distance can be chosen freely (should be max = 8, more has no sense)
-                    try:
-                        ateco_dist = int(parameters['ateco_dist'])  # it needs to be an integer
-                    except ValueError:
-                        response.body = json.dumps({"error": "expected an integer in the 'ateco_dist' field"})
-                        return response
-
-            # if it is given a parameters not in the accepted ones, raise an error
-            else:
-                response.body = json.dumps({"error": "wrong ateco in input",
-                                            "expected": "'strict', 'distance', 'auto' or 'false'[default]"})
-                return response
-        else:
-            ateco = 'false'         # if ateco parameter is not found, set default value
-
+        # ----------------------------------------
         # check for location parameter
         if 'location' in parameters.keys():
             # check if the location given is in the possible location choice
@@ -156,9 +139,51 @@ def suggestions():
         else:
             location = 'false'        # if location parameter is not found, set default value
 
-        json_obj = company_similarity(c_json, sf, num_min, only_website,
-                                      companies, id_key, web_key, parameters['num_max'], location, ateco, ateco_dist)
+        # ----------------------------------------
+        # check for size parameter
+        if 'size' in parameters.keys():
+            sizes = ['true', 'false', 'auto']
 
+            if parameters['size'] in sizes:
+                size = parameters['size']
+            else:
+                response.body = json.dumps({"error": "wrong size in input",
+                                            "expected": "'true', 'false'[default] or 'auto'"})
+                return response
+        else:
+            size = 'false'
+
+        # ----------------------------------------
+        # if company, check if also ateco is present (or it is completely ignored if company is not present)
+        if 'ateco' in parameters.keys():
+            # check if it is given one of the possible ateco
+            ateco_par = ['strict', 'distance', 'auto', 'false']
+
+            if parameters['ateco'] in ateco_par:
+                ateco = parameters['ateco']
+
+                if ateco == 'distance' and 'ateco_dist' in parameters.keys():
+                    # if ateco == distance, ateco distance can be chosen freely (should be max = 8, more has no sense)
+                    try:
+                        ateco_dist = int(parameters['ateco_dist'])  # it needs to be an integer
+                    except ValueError:
+                        response.body = json.dumps({"error": "wrong ateco_dist input",
+                                                    "expected": "an integer"})
+                        return response
+
+            # if it is given a parameters not in the accepted ones, raise an error
+            else:
+                response.body = json.dumps({"error": "wrong ateco in input",
+                                            "expected": "'strict', 'distance', 'auto' or 'false'[default]"})
+                return response
+        else:
+            ateco = 'false'         # if ateco parameter is not found, set default value
+
+        json_obj = company_similarity(c_json, sf, num_min, only_website, companies, id_key, web_key,
+                                      parameters['num_max'], location, size, ateco, ateco_dist)
+
+    # ----------------------------------------
+    # check if website is provided
     elif 'website' in parameters.keys():        # if both company and website is present in the query, web is ignored
         weblist = parameters.getall('website')         # get all the &website= in the query. (getall returns a list)
 
@@ -172,6 +197,8 @@ def suggestions():
         else:           # if no website is present in the models, get_json returns {}
             json_obj = {'error': 'websites not present in the models'}
 
+    # ----------------------------------------
+    # if neither company nor website is provided, return an error
     else:
         # we do need company or website parameter!!!
         response.body = json.dumps({"error": "parameter 'website' or 'company' is missing"})
@@ -181,16 +208,6 @@ def suggestions():
     response.body = json.dumps(json_obj)            # return suggested websites / companies
 
     return response
-
-
-def boolean(string):
-    # translate string into boolean
-    if string in ['true', 'True', 't', 'T', '1']:
-        return True
-    elif string in ['false', 'False', 'f', 'F', '0']:
-        return False
-    else:
-        raise KeyError
 
 
 @app.route('/<filename:path>')
