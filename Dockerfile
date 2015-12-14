@@ -22,4 +22,4 @@ RUN mv src/* ./ && bower install --allow-root
 
 ENV PYTHONPATH /home/user/code
 EXPOSE 8080
-CMD ["uwsgi", "--master", "--plugins", "python", "--chdir", "/home/user/code", "--http", ":13324", "--file", "bottle_prova.py", "--processes", "5", "--check-static", "/home/user/code/static"]
+CMD ["uwsgi", "--master", "--plugins", "python", "--chdir", "/home/user/code", "--http", ":13324", "--file", "bottle_app.py", "--processes", "5", "--check-static", "/home/user/code/static"]

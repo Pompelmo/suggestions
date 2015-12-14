@@ -11,4 +11,5 @@ scikit-learn==0.16.1
 six==1.9.0
 smart-open==1.2.1
 wheel==0.24.0
+elasticsearch==2.1.0
 uwsgi
