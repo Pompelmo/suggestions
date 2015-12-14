@@ -9,11 +9,12 @@ from integration import Integration
 
 
 class CreateJson(object):
-    def __init__(self, corpus, tfidf, index, tfidf_dict, tfidf_web, db_mean_value,
+    def __init__(self, corpus, tfidf, lsi, lsi_index, tfidf_dict, tfidf_web, db_mean_value,
                  ball_tree, id_to_web, d2v_model, db_des, w2v_model, db_key, len_dict):
         self.corpus = corpus                    # bow corpus
         self.tfidf = tfidf                      # tfidf model
-        self.index = index                      # tfidf similarity matrix
+        self.lsi = lsi                          # lsi model
+        self.lsi_index = lsi_index              # index for lsi similarity computation
         self.tfidf_dict = tfidf_dict            # dictionary for word <-> id
         self.tfidf_web = tfidf_web              # dictionary for doc n <-> website
         self.db_mean_value = db_mean_value      # mean vector <-> website database
@@ -30,11 +31,12 @@ class CreateJson(object):
         self.txt_len_in = 0.0                           # in self.inp_web_info with explicit = True
 
         # to have the integration functions
-        self.integrate = Integration(self.corpus, self.tfidf, self.index, self.tfidf_web,
+        self.integrate = Integration(self.corpus, self.tfidf, self.lsi, self.lsi_index, self.tfidf_web,
                                      self.db_mean_value, self.ball_tree, self.id_to_web, self.d2v_model)
 
     def count_text(self, url):
         """function to count text tokens present in tfidf model"""
+        # it doesn't really make much sense now that lsi is used...but anyway, returns the number of words in tf-idf
         try:
             indx = self.tfidf_web.values().index(url)       # try to get the index of the website
         except ValueError:
@@ -176,7 +178,7 @@ class CreateJson(object):
         d2v_dict = dict()           # empty dict for json obj creation
 
         w2v_mean, num = mean_w2v(self.db_mean_value, weblist)       # mean value of input websites according to w2v
-        tfidf_mean, num = mean_tfidf(self.tfidf_web, self.corpus, self.tfidf, weblist)  # mean value according to tf-idf
+        tfidf_mean, num = mean_tfidf(self.tfidf_web, self.corpus, self.tfidf, self.lsi, weblist)  # mean value according to tf-idf
 
         if not only_web:        # if in the query only_website=false
 
@@ -240,7 +242,7 @@ class CreateJson(object):
 
         # weblist is the input list of websites
         d2v_mean, num = mean_d2v(self.d2v_model, weblist)      # input website vector rep mean value according to d2v
-        tfidf_mean, num = mean_tfidf(self.tfidf_web, self.corpus, self.tfidf, weblist)      # same for tf-idf
+        tfidf_mean, num = mean_tfidf(self.tfidf_web, self.corpus, self.tfidf, self.lsi, weblist)      # same for tf-idf
 
         if not only_web:            # if only_website=false (so we want to see metadata of websites in the output)
             for i in range(0, len(w2v_rank)):               # for every similar website suggested by w2v

@@ -8,10 +8,11 @@ from vectors_mean import *
 
 
 class Integration(object):
-    def __init__(self, corpus, tfidf, index, tfidf_web, db_mean_value, ball_tree, id_to_web, d2v_model):
+    def __init__(self, corpus, tfidf, lsi, lsi_index, tfidf_web, db_mean_value, ball_tree, id_to_web, d2v_model):
         self.corpus = corpus                    # bow corpus
         self.tfidf = tfidf                      # tfidf model
-        self.index = index                      # tfidf similarity matrix
+        self.lsi = lsi
+        self.lsi_index = lsi_index                      # tfidf similarity matrix
         self.tfidf_web = tfidf_web              # dictionary for doc n <-> website
         self.db_mean_value = db_mean_value      # mean vector <-> website database
         self.ball_tree = ball_tree              # nearest neighbors ball tree structure
@@ -21,13 +22,13 @@ class Integration(object):
     def ms_tfidf(self, weblist, n):
         """compute most similar websites using tfidf text model"""
         # retrieve mean value of the vector representation of the input
-        mean_vector, number = mean_tfidf(self.tfidf_web, self.corpus, self.tfidf, weblist)
+        mean_vector, number = mean_tfidf(self.tfidf_web, self.corpus, self.tfidf, self.lsi, weblist)
 
         if number == 0:     # if there is no vector representation (websites don't exist in the models...)
             return [], []
 
         number += n                 # retrieve also n(=website in input) to avoid repeating input in the output
-        sims = self.index[mean_vector][:number]                      # query for similarity
+        sims = self.lsi_index[mean_vector][:number]                      # query for similarity
 
         rank = []
         scores = []

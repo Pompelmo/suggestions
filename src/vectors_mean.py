@@ -6,14 +6,14 @@ def sparse_mean(sparse_vectors_list):
     dense_vectors_list = []
 
     for vec in sparse_vectors_list:
-        dense_vectors_list.append(matutils.sparse2full(vec, length=519728))
+        dense_vectors_list.append(matutils.sparse2full(vec, length=1013243))
 
     mean = np.mean(dense_vectors_list, axis=0)
 
     return matutils.unitvec(matutils.full2sparse(mean))
 
 
-def mean_tfidf(tfidf_web, corpus, tfidf, weblist):
+def mean_tfidf(tfidf_web, corpus, tfidf, lsi, weblist):
     web_vec_rep = list()  # collect all the vectorial representation in one list
 
     for item in weblist:
@@ -25,13 +25,16 @@ def mean_tfidf(tfidf_web, corpus, tfidf, weblist):
         doc_num = tfidf_web.keys()[indx]                 # now get its id (same index)
 
         bow = corpus[doc_num]                            # transform it in bow
-        web_vec_rep.append(tfidf[bow])                   # get its tfidf representation
+        web_vec_rep.append(lsi[tfidf[bow]])                   # get its tfidf representation
 
     if web_vec_rep:
         number = len(web_vec_rep)
         # transform all the vectors to dense vectors, then compute their mean with numpy,
         # transform it in unit vec and return to sparse vector representation (to be able to query for similarity)
-        mean_vector = sparse_mean(web_vec_rep)
+        if len(web_vec_rep) > 1:
+            mean_vector = sparse_mean(web_vec_rep)
+        else:
+            mean_vector = web_vec_rep[0]
 
         return mean_vector, number
 
@@ -52,7 +55,7 @@ def mean_w2v(db_mean_value, weblist):
 
     if web_vec_rep:
         number = len(web_vec_rep)
-        mean_vec = np.mean(web_vec_rep, axis=0)         # get the mean vector of the websites vector rep
+        mean_vec = np.sum(web_vec_rep, axis=0)         # get the mean vector of the websites vector rep
         dim = np.linalg.norm(mean_vec)
         if dim:
             mean_vec /= dim             # if the vector is different from zero, normalize it

@@ -2,11 +2,13 @@
 # Given a company/websites, get its similar ones. (using websites) + eventually some filter for companies
 # ---------------------------------------------------------------------------------------------------------
 
-# id_key and web_key are constructed in 'csv_to_pickle.py'. They are such that info are all contained
+# id_key and web_key are constructed in 'model_training/metadata_company_create_dict.py'.
+# They are such that info are all contained
 # in id_key, and web_key is used when we have a website and we want to know which company it belongs to.
 # Since they both are created from the same csv, if c_id=web_key[website] exists, it implies id_key[c_id] exists
 
 from collections import OrderedDict
+from no_websites_companies import no_web_info
 import re
 
 
@@ -187,7 +189,7 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
         # create the output part (suggested companies with their information) - FILTER BY SIZE
         # --------------------------------------------------------------------------------------
 
-        if size == 'true':                          # if size=true we want to select output company with same size
+        if size == 'strict':                          # if size=true we want to select output company with same size
             size_list = list(set(size_list))        # ... at least the same of one of the company in input
             comp_to_be_filtered = list()
 
@@ -206,6 +208,8 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
 
             for siz in size_list:
                 new_size_list += expand_size(siz)
+
+            new_size_list = set(new_size_list)
 
             for company in companies:
                 size_out = companies[company]['size']
@@ -226,7 +230,7 @@ def company_similarity(create_json, sf, num_min, only_website, company_ids,
                                for key, value in output.iteritems()]}
 
     else:       # if not dictionary (i.e. no websites are found in the models by get_json)
-        json_obj = {'error': 'websites of the companies not present in the models'}
+        json_obj = no_web_info(num_max, company_ids, id_key)    # query to company-latest
 
     return json_obj
 
@@ -386,14 +390,16 @@ def ateco_auto(input_list, output_list):
     return good_ateco
 
 
-def expand_size(size):
-    if size == 1:
-        return [1, 2]
+def expand_size(size):  # for size = auto
+    if size == 0:
+        return [0, 1, 2, 3, 4]
+    elif size == 1:
+        return [0, 1, 2]
     elif size == 2:
-        return [1, 2]
+        return [0, 1, 2]
     elif size == 3:
-        return [1, 2, 3]
+        return [0, 2, 3, 4]
     elif size == 4:
-        return [3, 4]
+        return [0, 3, 4]
     else:
         raise IndexError
