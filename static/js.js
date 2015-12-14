@@ -18,7 +18,7 @@ angular.module('app', [])
 
       $http({
         method: 'GET',
-        url: '/suggest?company='+$scope.website+'&'+'model='+$scope.inputType+'&only_website=true&num_max=50&ateco=auto',
+        url: '/suggest?company='+$scope.website+'&'+'model='+$scope.inputType+'&only_website=true&num_max=50&ateco=auto&size=auto',
         data: $.param(data),
         headers: {'Content-Type': 'application/x-www-form-urlencoded'}
       }).success(function (data) {
