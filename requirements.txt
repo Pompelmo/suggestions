@@ -7,7 +7,7 @@ gensim==0.12.1
 httpretty==0.8.6
 nltk==3.1
 numpy==1.10.1
-requests==2.8.1
+requests==2.20.0
 scikit-learn==0.16.1
 scipy==0.15.1
 six==1.10.0
