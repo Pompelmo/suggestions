@@ -1,5 +1,5 @@
 boto==2.38.0
-bottle==0.12.9
+bottle==0.12.19
 bz2file==0.98
 Cython==0.23.2
 elasticsearch==2.1.0
